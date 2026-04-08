@@ -48,10 +48,13 @@ export default function LoginPage() {
       >
         <div className="glass rounded-3xl p-8 border border-white/10 shadow-2xl relative overflow-hidden">
           <div className="flex flex-col items-center mb-8">
-            <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center shadow-lg shadow-primary/20 mb-4 group hover:scale-110 transition-transform cursor-default">
-              <Printer className="text-white w-8 h-8" />
+            <div className="mb-6">
+              <img 
+                src="/logo.png" 
+                alt="Logo" 
+                className="w-full max-w-[220px] h-auto object-contain"
+              />
             </div>
-            <h1 className="text-2xl font-bold tracking-tight">PrintAI ERP</h1>
             <p className="text-muted-foreground text-sm mt-1">A inteligência que sua gráfica precisa.</p>
           </div>
 
@@ -126,7 +129,7 @@ export default function LoginPage() {
         </div>
 
         <p className="text-center text-[10px] text-gray-500 mt-8 uppercase tracking-widest">
-          Enterprise Solution by PrintAI © 2026
+          Enterprise Solution © 2026
         </p>
       </motion.div>
     </div>

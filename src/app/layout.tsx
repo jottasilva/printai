@@ -14,10 +14,10 @@ const inter = Inter({
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"),
   title: {
-    default: "Print.AI ERP | Gestão Inteligente para Gráficas - Jacarezinho-PR",
-    template: "%s | Print.AI ERP",
+    default: "PrintAI ERP | Gestão Inteligente para Gráficas",
+    template: "%s | PrintAI ERP",
   },
-  description: "ERP com Kanban de produção e IA para gráficas em Jacarezinho-PR. Gerencie pedidos, estoque, financeiro e produção em uma única plataforma.",
+  description: "ERP com Kanban de produção e IA para gráficas. Gerencie pedidos, estoque, financeiro e produção em uma única plataforma.",
   icons: {
     icon: "/logo.png",
   },

@@ -88,18 +88,17 @@ export function Sidebar({ mobileOpen, onMobileOpenChange }: SidebarProps) {
     <>
       {/* Header com Logo */}
       <div className="p-6">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
-            <Printer className="w-6 h-6 text-white" />
-          </div>
-          <div>
-            <h1 className="text-xl font-bold text-foreground tracking-tight">
-              PrintAI
-            </h1>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-semibold">
-              The Precision Atelier
-            </p>
-          </div>
+        <div className="flex items-center justify-center">
+          <img 
+            src="/logo.png" 
+            alt="Logo" 
+            className="w-full max-w-[180px] h-auto object-contain"
+          />
+        </div>
+        <div className="mt-2 text-center">
+          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-bold opacity-60">
+            Operational Cockpit
+          </p>
         </div>
       </div>
 

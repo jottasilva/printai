@@ -28,12 +28,11 @@ export default function LandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navLinks = [
-    { label: 'INÍCIO', href: '#' },
-    { label: 'PÁGINAS', href: '#' },
-    { label: 'BLOG', href: '#' },
-    { label: 'GALERIA', href: '#' },
-    { label: 'ELEMENTOS', href: '#' },
-    { label: 'LOJA', href: '#' },
+    { label: 'Impress&atilde;o', href: '#' },
+    { label: 'Corte Laser', href: '#' },
+    { label: 'MDF', href: '#' },
+    { label: 'Acr&iacute;lico', href: '#' },
+    { label: 'Personalizados', href: '#' },
   ];
 
   return (
@@ -103,54 +102,49 @@ export default function LandingPage() {
               (43) 99135-9790
             </span>
             <span className="flex items-center gap-1">
-              <Mail className="h-3 w-3" />
-              contato@print.ai
+              <a href="mailto:contato@printai.app" className="hover:text-purple-400 transition-colors">contato@printai.app</a>
             </span>
           </div>
         </div>
       </div>
 
-      {/* Navbar - Fixed pill shape, centered */}
-      <header className="fixed z-50 top-[38px] left-4 right-4 lg:left-1/2 lg:-translate-x-1/2 lg:w-[calc(100%-2rem)] lg:max-w-7xl bg-gray-900/95 dark:bg-[#0A0A0B]/95 backdrop-blur-xl shadow-2xl shadow-black/20 rounded-full border border-white/10 transition-all duration-300">
-        <div className="flex h-14 items-center justify-between px-5">
-          <div className="flex items-center gap-2">
-            <img src="/logo.png" alt="Print.AI" className="h-7 w-auto" />
-            <div className="hidden sm:block">
-              <span className="text-sm font-bold text-white">Print.AI</span>
-              <span className="ml-1 text-[9px] text-gray-400 uppercase tracking-wider">Gr&aacute;fica</span>
-            </div>
+      {/* Navbar - Sticky below top bar */}
+      <header className="sticky top-0 z-50 bg-gray-900/95 dark:bg-[#0A0A0B]/95 backdrop-blur-xl shadow-xl shadow-black/20 border-b border-white/10 transition-all duration-300">
+        <div className="mx-auto flex max-w-7xl h-14 items-center justify-between px-6">
+          <div className="flex items-center">
+            <img src="/logo.png" alt="Logo" className="h-10 w-auto object-contain" />
           </div>
 
-          <nav className="hidden items-center gap-4 md:flex">
-            <a href="#" className="text-xs font-medium text-purple-400">IN&Iacute;CIO</a>
-            <a href="#" className="text-xs text-gray-400 hover:text-white transition-colors">P&Aacute;GINAS</a>
-            <a href="#" className="text-xs text-gray-400 hover:text-white transition-colors">BLOG</a>
-            <a href="#" className="text-xs text-gray-400 hover:text-white transition-colors">GALERIA</a>
-            <a href="#" className="text-xs text-gray-400 hover:text-white transition-colors">LOJA</a>
+          <nav className="hidden lg:flex items-center gap-5">
+            <a href="#" className="text-sm font-light text-white hover:text-purple-400 transition-colors">Impress&atilde;o</a>
+            <a href="#" className="text-sm font-light text-gray-400 hover:text-white transition-colors">Corte Laser</a>
+            <a href="#" className="text-sm font-light text-gray-400 hover:text-white transition-colors">MDF</a>
+            <a href="#" className="text-sm font-light text-gray-400 hover:text-white transition-colors">Acr&iacute;lico</a>
+            <a href="#" className="text-sm font-light text-gray-400 hover:text-white transition-colors">Personalizados</a>
           </nav>
 
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-2">
             <ThemeToggle />
             <button
               onClick={() => setMobileMenuOpen(true)}
-              className="p-1.5 rounded-full text-gray-400 hover:bg-white/10 md:hidden"
+              className="p-2 rounded-lg text-gray-400 hover:bg-white/10 lg:hidden"
               aria-label="Abrir menu"
             >
-              <Menu className="h-4 w-4" />
+              <Menu className="h-5 w-5" />
             </button>
-            <button className="hidden md:block p-1.5 text-gray-400 hover:text-white transition-colors">
-              <Search className="h-4 w-4" />
+            <button className="hidden lg:block p-2 text-gray-400 hover:text-white transition-colors">
+              <Search className="h-5 w-5" />
             </button>
-            <button className="hidden md:block relative p-1.5 text-gray-400 hover:text-white transition-colors">
-              <ShoppingCart className="h-4 w-4" />
-              <span className="absolute -top-0.5 -right-0.5 h-3.5 w-3.5 rounded-full bg-purple-600 text-[8px] font-medium text-white flex items-center justify-center">3</span>
+            <button className="hidden lg:block relative p-2 text-gray-400 hover:text-white transition-colors">
+              <ShoppingCart className="h-5 w-5" />
+              <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-purple-600 text-[10px] font-bold text-white flex items-center justify-center">3</span>
             </button>
           </div>
         </div>
       </header>
 
-      {/* Spacer for top bar + navbar */}
-      <div className="h-[100px]" />
+      {/* Spacer for navbar */}
+      <div className="h-[56px]" />
 
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-br from-gray-50 via-white to-purple-50/50 dark:from-[#0A0A0B] dark:via-[#0A0A0B] dark:to-purple-900/10 py-20 lg:py-28 transition-colors">
@@ -174,7 +168,7 @@ export default function LandingPage() {
                 <span className="text-purple-600 dark:text-purple-400">marca</span>
               </h1>
               <p className="mt-6 text-lg text-gray-600 dark:text-gray-400 leading-relaxed max-w-lg">
-                Cartões, banners, adesivos e muito mais com qualidade profissional. Transformamos pixels em produtos táteis de alto impacto.
+                O cockpit operacional definitivo para indústrias gráficas. Automatize orçamentos, produção e controle financeiro.
               </p>
               <div className="mt-8 flex flex-wrap gap-4">
                 <Button asChild className="h-12 px-6 bg-purple-600 hover:bg-purple-700 text-white shadow-lg shadow-purple-600/20">
@@ -405,11 +399,9 @@ export default function LandingPage() {
       <footer className="border-t border-gray-100 dark:border-white/5 bg-white dark:bg-[#0A0A0B] py-16 transition-colors">
         <div className="mx-auto max-w-7xl px-6">
           <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-            {/* Brand */}
             <div>
-              <div className="flex items-center gap-2 mb-4">
-                <img src="/logo.png" alt="Print.AI" className="h-8 w-auto" />
-                <span className="text-lg font-bold text-gray-900 dark:text-white">Print.AI</span>
+              <div className="mb-4">
+                <img src="/logo.png" alt="Logo" className="h-14 w-auto object-contain" />
               </div>
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 Excelência em impressão digital com tecnologia de ponta e acabamento premium.
@@ -438,7 +430,6 @@ export default function LandingPage() {
               </ul>
             </div>
 
-            {/* Empresa */}
             <div>
               <h3 className="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wider mb-4">EMPRESA</h3>
               <ul className="space-y-2 text-sm text-gray-500 dark:text-gray-400">
@@ -462,7 +453,7 @@ export default function LandingPage() {
                 </li>
                 <li className="flex items-center gap-2">
                   <Mail className="h-4 w-4" />
-                  <a href="mailto:contato@print.ai" className="text-purple-600 dark:text-purple-400 hover:underline">contato@print.ai</a>
+                  <a href="mailto:contato@printai.app" className="text-purple-600 dark:text-purple-400 hover:underline">contato@printai.app</a>
                 </li>
                 <li className="flex items-start gap-2">
                   <MapPin className="h-4 w-4 mt-0.5" />
@@ -472,8 +463,10 @@ export default function LandingPage() {
             </div>
           </div>
 
-          <div className="mt-12 pt-8 border-t border-gray-100 dark:border-white/5 text-center text-sm text-gray-400">
-            © 2026 Print.AI. Todos os direitos reservados.
+          <div className="mt-12 pt-8 border-t border-gray-100 dark:border-white/5 text-center">
+            <p className="text-xs text-gray-400">
+              &copy; 2026 Inteligência Gráfica Digital. Todos os direitos reservados.
+            </p>
           </div>
         </div>
       </footer>
