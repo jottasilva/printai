@@ -1,0 +1,876 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// Gerenciamento de Tenants (Empresas)
+model Tenant {
+  id            String           @id @default(uuid())
+  name          String
+  slug          String           @unique
+  plan          Plan             @default(FREE)
+  status        TenantStatus     @default(TRIAL)
+  maxUsers      Int              @default(1)
+  maxStorage    BigInt           @default(1073741824)
+  settings      Json?
+  metadata      Json?
+  trialEndsAt   DateTime?
+  suspendedAt   DateTime?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  deletedAt     DateTime?
+  addresses     Address[]
+  auditLogs     AuditLog[]
+  cashFlows     CashFlow[]
+  categories    Category[]
+  conversations Conversation[]
+  customers     Customer[]
+  inventory     Inventory[]
+  sequences     NumberSequence[]
+  orders        Order[]
+  orderLogs     OrderItemLog[]
+  payables      Payable[]
+  payments      Payment[]
+  products      Product[]
+  quotes        Quote[]
+  receivables   Receivable[]
+  subscription  Subscription?
+  suppliers     Supplier[]
+  systemLogs    SystemLog[]
+  users         User[]
+
+  @@index([id])
+}
+
+/// Usuários do sistema
+model User {
+  id                    String              @id @default(uuid())
+  tenantId              String
+  email                 String
+  name                  String
+  phone                 String?
+  avatarUrl             String?
+  role                  UserRole            @default(VIEWER)
+  permissions           String[]
+  lastLoginAt           DateTime?
+  emailVerifiedAt       DateTime?
+  twoFactorEnabled      Boolean             @default(false)
+  refreshToken          String?
+  refreshTokenExpiresAt DateTime?
+  metadata              Json?
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+  deletedAt             DateTime?
+  auditLogs             AuditLog[]
+  conversations         Conversation[]
+  movements             InventoryMovement[]
+  orders                Order[]             @relation("OrderHandler")
+  assignedItems         OrderItem[]
+  quotes                Quote[]
+  tenant                Tenant              @relation(fields: [tenantId], references: [id])
+
+  @@unique([tenantId, email])
+  @@index([tenantId, id])
+}
+
+/// Clientes da Gráfica
+model Customer {
+  id            String         @id @default(uuid())
+  tenantId      String
+  name          String
+  email         String?
+  phone         String?
+  document      String?
+  documentType  DocumentType?
+  type          CustomerType   @default(PERSON)
+  companyName   String?
+  tradingName   String?
+  creditLimit   Decimal        @default(0) @db.Decimal(15, 2)
+  creditUsed    Decimal        @default(0) @db.Decimal(15, 2)
+  metadata      Json?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  deletedAt     DateTime?
+  addresses     Address[]
+  conversations Conversation[]
+  tenant        Tenant         @relation(fields: [tenantId], references: [id])
+  orders        Order[]
+  payments      Payment[]
+  quotes        Quote[]
+  receivables   Receivable[]
+
+  @@unique([tenantId, document], name: "uq_customer_document")
+  @@index([tenantId, id])
+  @@index([tenantId, email])
+}
+
+/// Endereços (Clientes e Fornecedores)
+model Address {
+  id             String      @id @default(uuid())
+  tenantId       String
+  street         String
+  number         String
+  complement     String?
+  district       String?
+  city           String
+  state          String
+  zipCode        String
+  country        String      @default("Brasil")
+  type           AddressType @default(BOTH)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  customerId     String?
+  supplierId     String?
+  customer       Customer?   @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  supplier       Supplier?   @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  tenant         Tenant      @relation(fields: [tenantId], references: [id])
+  billingOrders  Order[]     @relation("BillingAddress")
+  shippingOrders Order[]     @relation("ShippingAddress")
+
+  @@index([tenantId, customerId])
+  @@index([tenantId, supplierId])
+}
+
+/// Categorias de Produtos
+model Category {
+  id          String     @id @default(uuid())
+  tenantId    String
+  name        String
+  slug        String
+  description String?
+  position    Int        @default(0)
+  parentId    String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  deletedAt   DateTime?
+  parent      Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children    Category[] @relation("CategoryHierarchy")
+  tenant      Tenant     @relation(fields: [tenantId], references: [id])
+  products    Product[]
+
+  @@unique([tenantId, slug])
+  @@index([tenantId, id])
+}
+
+/// Catálogo de Produtos e Serviços
+model Product {
+  id            String            @id @default(uuid())
+  tenantId      String
+  name          String
+  sku           String
+  description   String?
+  unit          String            @default("un")
+  type          ProductType       @default(SIMPLE)
+  basePrice     Decimal           @db.Decimal(15, 2)
+  costPrice     Decimal           @db.Decimal(15, 2)
+  isActive      Boolean           @default(true)
+  isSellable    Boolean           @default(true)
+  isPurchasable Boolean           @default(true)
+  thumbnailUrl  String?
+  images        String[]
+  metadata      Json?
+  searchVector  String?           @ignore
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  deletedAt     DateTime?
+  categoryId    String?
+  inventory     Inventory[]
+  orderItems    OrderItem[]
+  category      Category?         @relation(fields: [categoryId], references: [id])
+  tenant        Tenant            @relation(fields: [tenantId], references: [id])
+  variants      ProductVariant[]
+  quoteItems    QuoteItem[]
+  supplierLinks SupplierProduct[]
+
+  @@unique([tenantId, sku])
+  @@index([tenantId, id])
+}
+
+/// Variantes de Produtos (ex: Tamanhos, Cores)
+model ProductVariant {
+  id         String      @id @default(uuid())
+  tenantId   String
+  productId  String
+  sku        String
+  name       String
+  attributes Json
+  price      Decimal?    @db.Decimal(15, 2)
+  costPrice  Decimal?    @db.Decimal(15, 2)
+  isActive   Boolean     @default(true)
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  deletedAt  DateTime?
+  inventory  Inventory[]
+  orderItems OrderItem[]
+  product    Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  quoteItems QuoteItem[]
+
+  @@unique([tenantId, sku])
+  @@index([tenantId, productId])
+}
+
+/// Controle de Estoque
+model Inventory {
+  id                String              @id @default(uuid())
+  tenantId          String
+  productId         String
+  variantId         String?
+  warehouseId       String?
+  quantity          Decimal             @default(0) @db.Decimal(15, 2)
+  reservedQuantity  Decimal             @default(0) @db.Decimal(15, 2)
+  availableQuantity Decimal             @default(0) @db.Decimal(15, 2)
+  minQuantity       Decimal?            @db.Decimal(15, 2)
+  maxQuantity       Decimal?            @db.Decimal(15, 2)
+  lastCountAt       DateTime?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  product           Product             @relation(fields: [productId], references: [id])
+  tenant            Tenant              @relation(fields: [tenantId], references: [id])
+  variant           ProductVariant?     @relation(fields: [variantId], references: [id])
+  movements         InventoryMovement[]
+
+  @@unique([tenantId, productId, variantId])
+  @@index([tenantId, id])
+}
+
+/// Rastreabilidade de Movimentação de Estoque
+model InventoryMovement {
+  id            String       @id @default(uuid())
+  tenantId      String
+  inventoryId   String
+  type          MovementType
+  quantity      Decimal      @db.Decimal(15, 2)
+  balanceBefore Decimal      @db.Decimal(15, 2)
+  balanceAfter  Decimal      @db.Decimal(15, 2)
+  reason        String
+  referenceType String?
+  referenceId   String?
+  userId        String
+  createdAt     DateTime     @default(now())
+  inventory     Inventory    @relation(fields: [inventoryId], references: [id])
+  user          User         @relation(fields: [userId], references: [id])
+
+  @@index([tenantId, inventoryId])
+}
+
+/// Fornecedores
+model Supplier {
+  id           String            @id @default(uuid())
+  tenantId     String
+  name         String
+  document     String?
+  documentType DocumentType?
+  email        String?
+  phone        String?
+  contactName  String?
+  paymentTerms Int               @default(0)
+  isActive     Boolean           @default(true)
+  metadata     Json?
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  deletedAt    DateTime?
+  addresses    Address[]
+  payables     Payable[]
+  tenant       Tenant            @relation(fields: [tenantId], references: [id])
+  products     SupplierProduct[]
+
+  @@index([tenantId, id])
+}
+
+/// Relação Produto-Fornecedor
+model SupplierProduct {
+  id           String   @id @default(uuid())
+  tenantId     String
+  supplierId   String
+  productId    String
+  supplierSku  String?
+  supplierName String?
+  price        Decimal  @db.Decimal(15, 2)
+  minQuantity  Decimal  @default(1) @db.Decimal(15, 2)
+  leadTimeDays Int      @default(0)
+  isPreferred  Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  product      Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  supplier     Supplier @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, supplierId, productId])
+}
+
+/// Orçamentos
+model Quote {
+  id                 String      @id @default(uuid())
+  tenantId           String
+  customerId         String
+  userId             String
+  number             String
+  status             QuoteStatus @default(DRAFT)
+  validUntil         DateTime
+  notes              String?
+  internalNotes      String?
+  subtotal           Decimal     @db.Decimal(15, 2)
+  discountAmount     Decimal     @default(0) @db.Decimal(15, 2)
+  taxAmount          Decimal     @default(0) @db.Decimal(15, 2)
+  total              Decimal     @db.Decimal(15, 2)
+  convertedToOrderId String?     @unique
+  metadata           Json?
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+  deletedAt          DateTime?
+  order              Order?      @relation("ConvertedFromQuote")
+  customer           Customer    @relation(fields: [customerId], references: [id])
+  tenant             Tenant      @relation(fields: [tenantId], references: [id])
+  user               User        @relation(fields: [userId], references: [id])
+  items              QuoteItem[]
+
+  @@unique([tenantId, number])
+  @@index([tenantId, id])
+}
+
+/// Itens de Orçamento
+model QuoteItem {
+  id          String          @id @default(uuid())
+  tenantId    String
+  quoteId     String
+  productId   String
+  variantId   String?
+  description String
+  quantity    Decimal         @db.Decimal(15, 2)
+  unitPrice   Decimal         @db.Decimal(15, 2)
+  discount    Decimal         @default(0) @db.Decimal(15, 2)
+  total       Decimal         @db.Decimal(15, 2)
+  notes       String?
+  createdAt   DateTime        @default(now())
+  product     Product         @relation(fields: [productId], references: [id])
+  quote       Quote           @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  variant     ProductVariant? @relation(fields: [variantId], references: [id])
+
+  @@index([tenantId, quoteId])
+}
+
+/// Pedidos de Venda / Ordens de Serviço
+model Order {
+  id                 String             @id @default(uuid())
+  tenantId           String
+  customerId         String
+  userId             String
+  quoteId            String?            @unique
+  number             String
+  status             OrderStatus        @default(DRAFT)
+  paymentStatus      OrderPaymentStatus @default(PENDING)
+  productionStatus   ProductionStatus   @default(WAITING)
+  shippingAddressId  String?
+  billingAddressId   String?
+  subtotal           Decimal            @db.Decimal(15, 2)
+  discountAmount     Decimal            @default(0) @db.Decimal(15, 2)
+  taxAmount          Decimal            @default(0) @db.Decimal(15, 2)
+  shippingAmount     Decimal            @default(0) @db.Decimal(15, 2)
+  total              Decimal            @db.Decimal(15, 2)
+  paidAmount         Decimal            @default(0) @db.Decimal(15, 2)
+  remainingAmount    Decimal            @db.Decimal(15, 2)
+  notes              String?
+  internalNotes      String?
+  cancelReason       String?
+  expectedDeliveryAt DateTime?
+  deliveredAt        DateTime?
+  canceledAt         DateTime?
+  metadata           Json?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  deletedAt          DateTime?
+  billingAddress     Address?           @relation("BillingAddress", fields: [billingAddressId], references: [id])
+  customer           Customer           @relation(fields: [customerId], references: [id])
+  quote              Quote?             @relation("ConvertedFromQuote", fields: [quoteId], references: [id])
+  shippingAddress    Address?           @relation("ShippingAddress", fields: [shippingAddressId], references: [id])
+  tenant             Tenant             @relation(fields: [tenantId], references: [id])
+  user               User               @relation("OrderHandler", fields: [userId], references: [id])
+  items              OrderItem[]
+  payments           Payment[]
+  receivables        Receivable[]
+
+  @@unique([tenantId, number])
+  @@index([tenantId, status])
+  @@index([tenantId, customerId])
+}
+
+/// Itens do Pedido (Production Tracking)
+model OrderItem {
+  id              String          @id @default(uuid())
+  tenantId        String
+  orderId         String
+  productId       String
+  variantId       String?
+  description     String
+  quantity        Decimal         @db.Decimal(15, 2)
+  unitPrice       Decimal         @db.Decimal(15, 2)
+  discount        Decimal         @default(0) @db.Decimal(15, 2)
+  total           Decimal         @db.Decimal(15, 2)
+  status          OrderItemStatus @default(PENDING)
+  position        Int             @default(0)
+  priority        ItemPriority    @default(NORMAL)
+  assignedUserId  String?
+  dueDate         DateTime?
+  startedAt       DateTime?
+  finishedAt      DateTime?
+  pausedAt        DateTime?
+  slaBreached     Boolean         @default(false)
+  notes           String?
+  productionNotes String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  assignedUser    User?           @relation(fields: [assignedUserId], references: [id])
+  order           Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product         Product         @relation(fields: [productId], references: [id])
+  variant         ProductVariant? @relation(fields: [variantId], references: [id])
+  logs            OrderItemLog[]
+
+  @@index([tenantId, orderId])
+  @@index([tenantId, status])
+  @@index([tenantId, assignedUserId])
+}
+
+/// Logs de Produção (Rastreabilidade Kanban)
+model OrderItemLog {
+  id           String          @id @default(uuid())
+  tenantId     String
+  orderItemId  String
+  userId       String
+  fromStatus   OrderItemStatus
+  toStatus     OrderItemStatus
+  fromPosition Int?
+  toPosition   Int?
+  note         String?
+  duration     Int?
+  createdAt    DateTime        @default(now())
+  orderItem    OrderItem       @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  tenant       Tenant          @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId, orderItemId])
+}
+
+/// Pagamentos Recebidos
+model Payment {
+  id              String        @id @default(uuid())
+  tenantId        String
+  orderId         String
+  customerId      String
+  method          PaymentMethod
+  status          PaymentStatus @default(PENDING)
+  amount          Decimal       @db.Decimal(15, 2)
+  feeAmount       Decimal       @default(0) @db.Decimal(15, 2)
+  netAmount       Decimal       @db.Decimal(15, 2)
+  externalId      String?
+  externalStatus  String?
+  gatewayResponse Json?
+  paidAt          DateTime?
+  refundedAt      DateTime?
+  canceledAt      DateTime?
+  dueDate         DateTime?
+  pixCode         String?
+  barcodeUrl      String?
+  receiptUrl      String?
+  metadata        Json?
+  createdAt       DateTime      @default(now())
+  customer        Customer      @relation(fields: [customerId], references: [id])
+  order           Order         @relation(fields: [orderId], references: [id])
+  tenant          Tenant        @relation(fields: [tenantId], references: [id])
+  receivables     Receivable[]
+
+  @@index([tenantId, orderId])
+  @@index([tenantId, externalId])
+  @@index([tenantId, status])
+}
+
+/// Contas a Receber
+model Receivable {
+  id                String           @id @default(uuid())
+  tenantId          String
+  customerId        String
+  orderId           String?
+  paymentId         String?
+  description       String
+  amount            Decimal          @db.Decimal(15, 2)
+  paidAmount        Decimal          @default(0) @db.Decimal(15, 2)
+  dueDate           DateTime
+  paidAt            DateTime?
+  status            ReceivableStatus @default(PENDING)
+  installmentNumber Int?
+  totalInstallments Int?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  customer          Customer         @relation(fields: [customerId], references: [id])
+  order             Order?           @relation(fields: [orderId], references: [id])
+  payment           Payment?         @relation(fields: [paymentId], references: [id])
+  tenant            Tenant           @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId, dueDate])
+  @@index([tenantId, customerId])
+}
+
+/// Contas a Pagar
+model Payable {
+  id          String        @id @default(uuid())
+  tenantId    String
+  supplierId  String?
+  description String
+  amount      Decimal       @db.Decimal(15, 2)
+  paidAmount  Decimal       @default(0) @db.Decimal(15, 2)
+  dueDate     DateTime
+  paidAt      DateTime?
+  status      PayableStatus @default(PENDING)
+  category    String?
+  costCenter  String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  supplier    Supplier?     @relation(fields: [supplierId], references: [id])
+  tenant      Tenant        @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId, dueDate])
+}
+
+/// Fluxo de Caixa (Realizado)
+model CashFlow {
+  id            String       @id @default(uuid())
+  tenantId      String
+  type          CashFlowType
+  category      String
+  amount        Decimal      @db.Decimal(15, 2)
+  description   String
+  date          DateTime
+  referenceType String?
+  referenceId   String?
+  balance       Decimal      @db.Decimal(15, 2)
+  createdAt     DateTime     @default(now())
+  tenant        Tenant       @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId, date])
+  @@index([tenantId, type, date])
+}
+
+/// Conversas (Canais Externos)
+model Conversation {
+  id              String              @id @default(uuid())
+  tenantId        String
+  customerId      String?
+  channel         ConversationChannel @default(WHATSAPP)
+  status          ConversationStatus  @default(OPEN)
+  assignedUserId  String?
+  externalId      String?
+  aiEnabled       Boolean             @default(true)
+  aiModel         String?
+  totalTokensUsed Int                 @default(0)
+  lastMessageAt   DateTime?
+  metadata        Json?
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  assignedUser    User?               @relation(fields: [assignedUserId], references: [id])
+  customer        Customer?           @relation(fields: [customerId], references: [id])
+  tenant          Tenant              @relation(fields: [tenantId], references: [id])
+  messages        Message[]
+
+  @@index([tenantId, customerId])
+  @@index([tenantId, externalId])
+  @@index([tenantId, status])
+}
+
+/// Mensagens das Conversas (Pronta para RAG)
+model Message {
+  id             String             @id @default(uuid())
+  tenantId       String
+  conversationId String
+  role           MessageRole        @default(USER)
+  content        String
+  contentType    MessageContentType @default(TEXT)
+  externalId     String?
+  tokensUsed     Int?
+  modelUsed      String?
+  isAiGenerated  Boolean            @default(false)
+  embedding      Float[]
+  failedAt       DateTime?
+  failReason     String?
+  createdAt      DateTime           @default(now())
+  conversation   Conversation       @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, conversationId])
+  @@index([tenantId, conversationId, createdAt(sort: Desc)])
+}
+
+/// Assinaturas do SaaS
+model Subscription {
+  id                 String             @id @default(uuid())
+  tenantId           String             @unique
+  plan               Plan
+  status             SubscriptionStatus @default(TRIALING)
+  externalId         String?
+  currentPeriodStart DateTime
+  currentPeriodEnd   DateTime
+  cancelAtPeriodEnd  Boolean            @default(false)
+  canceledAt         DateTime?
+  priceAmount        Decimal            @db.Decimal(15, 2)
+  currency           String             @default("BRL")
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  tenant             Tenant             @relation(fields: [tenantId], references: [id])
+}
+
+/// Logs do Sistema
+model SystemLog {
+  id         String   @id @default(uuid())
+  tenantId   String?
+  level      LogLevel
+  message    String
+  context    Json?
+  service    String
+  method     String?
+  traceId    String?
+  duration   Int?
+  httpStatus Int?
+  createdAt  DateTime @default(now())
+  tenant     Tenant?  @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId, level, createdAt])
+  @@index([traceId])
+}
+
+/// Auditoria de Alterações
+model AuditLog {
+  id        String   @id @default(uuid())
+  tenantId  String
+  userId    String
+  userEmail String
+  action    String
+  entity    String
+  entityId  String
+  before    Json?
+  after     Json?
+  ip        String?
+  userAgent String?
+  traceId   String?
+  createdAt DateTime @default(now())
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@index([tenantId, entity, entityId])
+  @@index([tenantId, userId, createdAt])
+  @@index([tenantId, action, createdAt])
+}
+
+/// Sequenciador de Números (Pedido/Orçamento)
+model NumberSequence {
+  id         String   @id @default(uuid())
+  tenantId   String
+  entity     String
+  lastNumber Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  tenant     Tenant   @relation(fields: [tenantId], references: [id])
+
+  @@unique([tenantId, entity])
+}
+
+enum Plan {
+  FREE
+  STARTER
+  PROFESSIONAL
+  ENTERPRISE
+}
+
+enum TenantStatus {
+  ACTIVE
+  SUSPENDED
+  TRIAL
+  CANCELED
+}
+
+enum UserRole {
+  OWNER
+  ADMIN
+  MANAGER
+  OPERATOR
+  VIEWER
+}
+
+enum DocumentType {
+  CPF
+  CNPJ
+}
+
+enum CustomerType {
+  PERSON
+  COMPANY
+}
+
+enum AddressType {
+  BILLING
+  SHIPPING
+  BOTH
+}
+
+enum ProductType {
+  SIMPLE
+  VARIABLE
+  SERVICE
+  BUNDLE
+}
+
+enum MovementType {
+  IN
+  OUT
+  RESERVE
+  RELEASE
+  ADJUSTMENT
+  LOSS
+}
+
+enum QuoteStatus {
+  DRAFT
+  SENT
+  VIEWED
+  ACCEPTED
+  REJECTED
+  EXPIRED
+  CONVERTED
+}
+
+enum OrderStatus {
+  DRAFT
+  CONFIRMED
+  IN_PRODUCTION
+  READY
+  SHIPPED
+  DELIVERED
+  CANCELED
+  REFUNDED
+}
+
+enum OrderPaymentStatus {
+  PENDING
+  PARTIAL
+  PAID
+  OVERDUE
+  REFUNDED
+  CANCELED
+}
+
+enum ProductionStatus {
+  WAITING
+  IN_QUEUE
+  IN_PROGRESS
+  PAUSED
+  DONE
+  REJECTED
+}
+
+enum OrderItemStatus {
+  PENDING
+  QUEUED
+  IN_PROGRESS
+  PAUSED
+  DONE
+  CANCELED
+  REJECTED
+}
+
+enum ItemPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+enum PaymentMethod {
+  CASH
+  PIX
+  CREDIT_CARD
+  DEBIT_CARD
+  BANK_TRANSFER
+  BOLETO
+  CHECK
+  OTHER
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  PAID
+  FAILED
+  CANCELED
+  REFUNDED
+  CHARGEBACK
+}
+
+enum ReceivableStatus {
+  PENDING
+  PARTIAL
+  PAID
+  OVERDUE
+  CANCELED
+  WRITTEN_OFF
+}
+
+enum PayableStatus {
+  PENDING
+  PARTIAL
+  PAID
+  OVERDUE
+  CANCELED
+}
+
+enum CashFlowType {
+  INFLOW
+  OUTFLOW
+}
+
+enum ConversationChannel {
+  WHATSAPP
+  EMAIL
+  CHAT
+  SMS
+  INSTAGRAM
+  OTHER
+}
+
+enum ConversationStatus {
+  OPEN
+  AI_HANDLING
+  WAITING_HUMAN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum MessageRole {
+  USER
+  ASSISTANT
+  SYSTEM
+  TOOL
+}
+
+enum MessageContentType {
+  TEXT
+  IMAGE
+  AUDIO
+  DOCUMENT
+  TEMPLATE
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  TRIALING
+  PAUSED
+  INCOMPLETE
+}
+
+enum LogLevel {
+  DEBUG
+  INFO
+  WARN
+  ERROR
+  FATAL
+}
