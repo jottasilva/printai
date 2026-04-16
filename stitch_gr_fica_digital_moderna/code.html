@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Gestão de Setores - Print.AI</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary": "#f7f7ff",
+                        "surface-container-low": "#f0f4f7",
+                        "primary": "#565e74",
+                        "on-secondary-fixed-variant": "#4d5d73",
+                        "on-error": "#fff7f6",
+                        "surface-tint": "#565e74",
+                        "on-secondary": "#f7f9ff",
+                        "secondary-fixed": "#d3e4fe",
+                        "inverse-surface": "#0b0f10",
+                        "tertiary-container": "#8342f4",
+                        "tertiary-fixed": "#8342f4",
+                        "outline-variant": "#a9b4b9",
+                        "inverse-on-surface": "#9a9d9f",
+                        "surface-bright": "#f7f9fb",
+                        "surface-variant": "#d9e4ea",
+                        "tertiary": "#742fe5",
+                        "inverse-primary": "#dae2fd",
+                        "surface-container": "#e8eff3",
+                        "error-dim": "#4e0309",
+                        "on-secondary-fixed": "#314055",
+                        "surface-dim": "#cfdce3",
+                        "secondary-fixed-dim": "#c5d6f0",
+                        "surface": "#f7f9fb",
+                        "primary-fixed": "#dae2fd",
+                        "secondary-dim": "#44546a",
+                        "on-tertiary-container": "#ffffff",
+                        "surface-container-highest": "#d9e4ea",
+                        "primary-fixed-dim": "#ccd4ee",
+                        "on-secondary-container": "#435368",
+                        "primary-container": "#dae2fd",
+                        "on-primary-fixed-variant": "#535b71",
+                        "error-container": "#fe8983",
+                        "on-primary-container": "#4a5167",
+                        "surface-container-lowest": "#ffffff",
+                        "on-tertiary-fixed": "#ffffff",
+                        "surface-container-high": "#e1e9ee",
+                        "on-surface-variant": "#566166",
+                        "on-surface": "#2a3439",
+                        "primary-dim": "#4a5268",
+                        "outline": "#717c82",
+                        "on-primary-fixed": "#373f54",
+                        "on-tertiary-fixed-variant": "#e5d5ff",
+                        "error": "#9f403d",
+                        "tertiary-fixed-dim": "#7632e7",
+                        "background": "#f7f9fb",
+                        "on-error-container": "#752121",
+                        "on-background": "#2a3439",
+                        "secondary-container": "#d3e4fe",
+                        "secondary": "#506076",
+                        "on-tertiary": "#fdf7ff",
+                        "tertiary-dim": "#681ad9"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Inter"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="bg-background text-on-surface flex min-h-screen">
+<!-- SideNavBar -->
+<aside class="fixed left-0 h-full w-64 bg-[#f0f4f7] dark:bg-slate-950 flex flex-col p-4 gap-2 border-none z-[60]">
+<div class="mb-8 px-4">
+<h1 class="text-lg font-black text-[#565e74] dark:text-white tracking-tighter">Print.AI</h1>
+<p class="text-xs text-on-surface-variant font-medium">Precision Atelier</p>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-4 py-2 text-[#566166] hover:text-[#565e74] hover:bg-white/50 transition-all duration-200 rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-medium text-sm">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2 bg-white text-[#565e74] rounded-lg shadow-sm transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="precision_manufacturing">precision_manufacturing</span>
+<span class="font-medium text-sm">Produção</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2 text-[#566166] hover:text-[#565e74] hover:bg-white/50 transition-all duration-200 rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="inventory_2">inventory_2</span>
+<span class="font-medium text-sm">Estoque</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2 text-[#566166] hover:text-[#565e74] hover:bg-white/50 transition-all duration-200 rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="payments">payments</span>
+<span class="font-medium text-sm">Financeiro</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2 text-[#566166] hover:text-[#565e74] hover:bg-white/50 transition-all duration-200 rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+<span class="font-medium text-sm">Relatórios</span>
+</a>
+</nav>
+<div class="mt-auto space-y-1">
+<button class="w-full bg-primary text-white py-2.5 rounded-lg font-semibold text-sm mb-6 flex items-center justify-center gap-2 hover:bg-primary-dim transition-colors">
+<span class="material-symbols-outlined text-[20px]" data-icon="add">add</span>
+                Novo Pedido
+            </button>
+<a class="flex items-center gap-3 px-4 py-2 text-[#566166] hover:text-[#565e74] hover:bg-white/50 transition-all duration-200 rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-medium text-sm">Configurações</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2 text-[#566166] hover:text-[#565e74] hover:bg-white/50 transition-all duration-200 rounded-lg text-error" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span class="font-medium text-sm">Sair</span>
+</a>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 ml-64 min-h-screen flex flex-col">
+<!-- TopNavBar -->
+<header class="fixed top-0 left-64 right-0 h-16 bg-[#f7f9fb]/80 backdrop-blur-md flex items-center justify-between px-8 z-50">
+<div class="flex items-center gap-4">
+<span class="text-sm font-semibold text-primary">Gestão de Produção / Setores</span>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-4 text-on-surface-variant">
+<button class="material-symbols-outlined hover:text-primary transition-colors" data-icon="notifications">notifications</button>
+<button class="material-symbols-outlined hover:text-primary transition-colors" data-icon="settings">settings</button>
+<button class="material-symbols-outlined hover:text-primary transition-colors" data-icon="help">help</button>
+</div>
+<div class="flex items-center gap-3 pl-6 border-l border-outline-variant/20">
+<div class="text-right">
+<p class="text-xs font-bold text-primary">Arthur Mendes</p>
+<p class="text-[10px] text-on-surface-variant uppercase tracking-wider">Gerente de Produção</p>
+</div>
+<img class="w-8 h-8 rounded-full object-cover" data-alt="portrait of a professional male production manager in a modern office setting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCTIdMulPMknOaFAOaQ2GoWC157fmijzMU2iaxFRFgfNj5Gqdi5uj97cyVsevvTEbHEbFlvONREvts_LTy4NQ2AWHqFEm9FN6c8aVFwUJi8w-FoOSgqelrbWvwLxk1VI0qDGqmkJ2VCV1hOrHCRh6d-Rjlom3xe-CBNIz_U7JZbzCxNmdKQV7mY12eqTBrd1Ytwv2-9tV0IGvNCYdQDSoWhghQm3MwI7gL4nUwtaGcfAHXv76__WsEyWTviAVW8kBnovaNnYm3f36hO"/>
+</div>
+</div>
+</header>
+<!-- Canvas -->
+<div class="mt-16 p-8 flex flex-col gap-8">
+<!-- Header do Setor -->
+<section class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+<div>
+<div class="flex items-center gap-3 mb-2">
+<span class="px-2 py-0.5 bg-on-tertiary-container/10 text-on-tertiary-container text-[10px] font-bold rounded uppercase tracking-widest">Produção</span>
+<div class="flex items-center gap-1.5 px-2 py-0.5 bg-green-100 text-green-700 text-[10px] font-bold rounded uppercase tracking-widest">
+<span class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
+                            Operacional
+                        </div>
+</div>
+<h2 class="text-4xl font-black text-primary tracking-tight mb-2">Setor: Impressão Offset</h2>
+<p class="text-on-surface-variant max-w-md">Gerenciamento de carga horária e manutenção preventiva para as impressoras Heidelberg Speedmaster XL 106.</p>
+</div>
+<div class="flex items-center gap-4 bg-surface-container-lowest p-3 rounded-xl shadow-sm border border-outline-variant/10">
+<img class="w-12 h-12 rounded-lg object-cover" data-alt="headshot of a male technician with safety glasses and workshop uniform in a manufacturing environment" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCko_zDsXI0vr_QecCLBRrj9rNJAth_I0gKmpXXK3CAIthYON5I_aS6qW4fsdzbm5F_EbpOTYg-_dNCDtd1t4g7Z0cnuK3okTrR-jIS2BJULa5qMxlNeXaWOTzIqg6TYC-HXEJU4MG0GG6SeM692f3ZCE_cm45l3u61ENRI3HaRfOihATp_Ig-rH_z1dxhTm5Z-VemM1voOcIQVV5-agoT6dUpLbVwge28_Bac34nAyy73SVS_NgY1lxbMUl4XRBkV4tPNP9Azbn8LZ"/>
+<div>
+<p class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Responsável Técnico</p>
+<p class="text-sm font-bold text-primary">Marcos Oliveira</p>
+<button class="text-xs text-primary font-semibold hover:underline">Mudar Responsável</button>
+</div>
+</div>
+</section>
+<!-- Dashboard de Métricas (Bento Grid Style) -->
+<section class="grid grid-cols-1 md:grid-cols-4 gap-4">
+<div class="col-span-1 bg-surface-container-lowest p-6 rounded-2xl flex flex-col justify-between border border-outline-variant/10 transition-transform hover:scale-[1.01]">
+<div class="flex justify-between items-start mb-4">
+<span class="material-symbols-outlined text-primary" data-icon="query_stats">query_stats</span>
+<span class="text-[10px] font-bold text-green-600 bg-green-50 px-2 py-1 rounded">+2.4%</span>
+</div>
+<div>
+<p class="text-[11px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">Capacidade Usada</p>
+<h3 class="text-3xl font-black text-primary tracking-tighter">84.2%</h3>
+</div>
+</div>
+<div class="col-span-1 bg-surface-container-lowest p-6 rounded-2xl flex flex-col justify-between border border-outline-variant/10 transition-transform hover:scale-[1.01]">
+<div class="flex justify-between items-start mb-4">
+<span class="material-symbols-outlined text-tertiary" data-icon="speed">speed</span>
+<span class="text-[10px] font-bold text-primary-dim bg-primary-container/30 px-2 py-1 rounded">Ideal: 92%</span>
+</div>
+<div>
+<p class="text-[11px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">OEE do Setor</p>
+<h3 class="text-3xl font-black text-primary tracking-tighter">89.5%</h3>
+</div>
+</div>
+<div class="col-span-1 bg-surface-container-lowest p-6 rounded-2xl flex flex-col justify-between border border-outline-variant/10 transition-transform hover:scale-[1.01]">
+<div class="flex justify-between items-start mb-4">
+<span class="material-symbols-outlined text-error" data-icon="timer">timer</span>
+<span class="text-[10px] font-bold text-error-dim bg-error-container/20 px-2 py-1 rounded">-12min</span>
+</div>
+<div>
+<p class="text-[11px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">Tempo de Setup</p>
+<h3 class="text-3xl font-black text-primary tracking-tighter">18m 42s</h3>
+</div>
+</div>
+<div class="col-span-1 bg-primary text-white p-6 rounded-2xl flex flex-col justify-between shadow-lg shadow-primary/20">
+<div class="flex justify-between items-start">
+<span class="material-symbols-outlined" data-icon="bolt">bolt</span>
+</div>
+<div class="space-y-2">
+<button class="w-full bg-white/10 hover:bg-white/20 text-white text-xs font-bold py-2 rounded-lg flex items-center justify-center gap-2 transition-colors">
+<span class="material-symbols-outlined text-sm" data-icon="support_agent">support_agent</span>
+                            Abrir Chamado Técnico
+                        </button>
+<button class="w-full bg-white text-primary text-xs font-bold py-2 rounded-lg flex items-center justify-center gap-2 transition-colors">
+<span class="material-symbols-outlined text-sm" data-icon="file_download">file_download</span>
+                            Exportar Log
+                        </button>
+</div>
+</div>
+</section>
+<!-- Conteúdo em Duas Colunas -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<!-- Visão de Carga (Grid de Pedidos) -->
+<div class="lg:col-span-2 space-y-4">
+<div class="flex items-center justify-between">
+<h4 class="text-lg font-black text-primary tracking-tight">Fila de Produção Atual</h4>
+<div class="flex gap-2">
+<button class="p-2 bg-surface-container rounded-lg material-symbols-outlined text-sm" data-icon="filter_list">filter_list</button>
+<button class="p-2 bg-surface-container rounded-lg material-symbols-outlined text-sm" data-icon="grid_view">grid_view</button>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<!-- Card de Pedido -->
+<div class="bg-surface-container-lowest p-5 rounded-2xl border border-outline-variant/10 shadow-sm">
+<div class="flex justify-between items-start mb-4">
+<div>
+<p class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-0.5">Pedido #8829</p>
+<h5 class="text-sm font-bold text-primary uppercase">Revista Art &amp; Design - 5k un</h5>
+</div>
+<span class="px-2 py-1 bg-secondary-container/50 text-on-secondary-container text-[9px] font-black rounded-md">EM CURSO</span>
+</div>
+<div class="mb-4">
+<div class="flex justify-between text-[10px] font-bold text-on-surface-variant mb-1">
+<span>Progresso da Tiragem</span>
+<span>62%</span>
+</div>
+<div class="w-full h-1.5 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full" style="width: 62%"></div>
+</div>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex -space-x-2">
+<img class="w-6 h-6 rounded-full border-2 border-white" data-alt="close-up portrait of female employee" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD_tMiIJbrlY1XcRsxGicyIG23W9iZkCOP95OVytq18yfEZ46bQPW8Ekp1pk7GYNtnDiHuyhFsIjEJKuxIMWkg3L_drwNryMjEH43EKj_0ZnvGpDZtm6Dy4yL_V97ZWAKG70tlflP3oOjqwBWJdUAXYGCxJb2Zdzz8hBpYPhdUVpmQ3TYwUT9XOgEFp6szWbPJbhgsYpcqC0TGQlGJfmXiYdCnTQCIMpzJyZT41feakPLxpaOoKUy4XoGh-0HDntLkRqNYzs4MAoWFj"/>
+<img class="w-6 h-6 rounded-full border-2 border-white" data-alt="close-up portrait of male employee" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCsSGSmfbighCx1t53zd2bnDT4h3VuPAuub6aC3UxRrau0OZC_kShlmrBzkIMnde0l6Olsr1VElHm0Z3lzorQq2tX8ONs5q5IgY0Bfo79bn5JFFRCjySL4Uo8pYN0T1INkkZEYP290PvRuUV4MmzQKs-GwOGNTdTyjcuqAdrUyJ5Ddaa4G5Lo0j5_q7Y0HnDG-evq7rHUn6bumH_Cjoo6Q2BlFDcs22JqLgPGq9bvJ1TNOGcAIfcX4LfU_XfVbSd7ykJz0yH2NQT2rJ"/>
+</div>
+<div class="flex items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined text-sm" data-icon="schedule">schedule</span>
+<span class="text-[10px] font-bold uppercase">Entrega: Hoje, 18:00</span>
+</div>
+</div>
+</div>
+<!-- Card de Pedido 2 -->
+<div class="bg-surface-container-lowest p-5 rounded-2xl border border-outline-variant/10 shadow-sm opacity-80">
+<div class="flex justify-between items-start mb-4">
+<div>
+<p class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-0.5">Pedido #8834</p>
+<h5 class="text-sm font-bold text-primary uppercase">Catálogo Industrial Outono</h5>
+</div>
+<span class="px-2 py-1 bg-surface-container text-on-surface-variant text-[9px] font-black rounded-md uppercase">Aguardando</span>
+</div>
+<div class="mb-4">
+<div class="flex justify-between text-[10px] font-bold text-on-surface-variant mb-1">
+<span>Setup Pendente</span>
+<span>0%</span>
+</div>
+<div class="w-full h-1.5 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-outline-variant rounded-full" style="width: 0%"></div>
+</div>
+</div>
+<div class="flex items-center justify-between">
+<div class="text-[10px] font-bold text-on-surface-variant uppercase">Papel Couchê 150g</div>
+<div class="flex items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined text-sm" data-icon="inventory">inventory</span>
+<span class="text-[10px] font-bold uppercase">Matéria-Prima OK</span>
+</div>
+</div>
+</div>
+<!-- Card de Pedido 3 -->
+<div class="bg-surface-container-lowest p-5 rounded-2xl border border-outline-variant/10 shadow-sm">
+<div class="flex justify-between items-start mb-4">
+<div>
+<p class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-0.5">Pedido #8812</p>
+<h5 class="text-sm font-bold text-primary uppercase">Packaging Premium Luxury</h5>
+</div>
+<span class="px-2 py-1 bg-tertiary-container/10 text-tertiary text-[9px] font-black rounded-md uppercase">Acabamento</span>
+</div>
+<div class="mb-4">
+<div class="flex justify-between text-[10px] font-bold text-on-surface-variant mb-1">
+<span>Fase de Verniz</span>
+<span>92%</span>
+</div>
+<div class="w-full h-1.5 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-tertiary rounded-full" style="width: 92%"></div>
+</div>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-sm text-tertiary" data-icon="stars">stars</span>
+<span class="text-[10px] font-bold text-tertiary uppercase">Alta Prioridade</span>
+</div>
+<div class="flex items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined text-sm" data-icon="schedule">schedule</span>
+<span class="text-[10px] font-bold uppercase">Expira em 2h</span>
+</div>
+</div>
+</div>
+<!-- Card de Pedido 4 -->
+<div class="bg-surface-container-lowest p-5 rounded-2xl border border-outline-variant/10 shadow-sm border-dashed border-2 flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-container-low cursor-pointer transition-colors">
+<span class="material-symbols-outlined text-3xl mb-2" data-icon="add_circle">add_circle</span>
+<p class="text-xs font-bold uppercase tracking-widest">Alocar novo pedido</p>
+</div>
+</div>
+</div>
+<!-- Histórico de Atividades (Timeline) -->
+<div class="lg:col-span-1 space-y-4">
+<h4 class="text-lg font-black text-primary tracking-tight">Logs de Atividade</h4>
+<div class="bg-surface-container-lowest rounded-2xl border border-outline-variant/10 p-6 flex flex-col gap-6 max-h-[500px] overflow-y-auto no-scrollbar">
+<div class="flex gap-4">
+<div class="relative">
+<div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-sm" data-icon="move_up">move_up</span>
+</div>
+<div class="absolute top-10 left-4 w-px h-8 bg-surface-container"></div>
+</div>
+<div>
+<p class="text-xs font-bold text-primary">Pedido #8829 movido para acabamento</p>
+<p class="text-[10px] text-on-surface-variant">por Marcos Oliveira • 14:20</p>
+</div>
+</div>
+<div class="flex gap-4">
+<div class="relative">
+<div class="w-8 h-8 rounded-full bg-error-container/20 flex items-center justify-center text-error">
+<span class="material-symbols-outlined text-sm" data-icon="build">build</span>
+</div>
+<div class="absolute top-10 left-4 w-px h-8 bg-surface-container"></div>
+</div>
+<div>
+<p class="text-xs font-bold text-primary">Manutenção preventiva realizada</p>
+<p class="text-[10px] text-on-surface-variant">Unidade Offset B2 • 11:45</p>
+</div>
+</div>
+<div class="flex gap-4">
+<div class="relative">
+<div class="w-8 h-8 rounded-full bg-secondary-container flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-sm" data-icon="person_add">person_add</span>
+</div>
+<div class="absolute top-10 left-4 w-px h-8 bg-surface-container"></div>
+</div>
+<div>
+<p class="text-xs font-bold text-primary">Novo responsável atribuído</p>
+<p class="text-[10px] text-on-surface-variant">Marcos Oliveira assumiu • 08:00</p>
+</div>
+</div>
+<div class="flex gap-4">
+<div class="relative">
+<div class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined text-sm" data-icon="check_circle">check_circle</span>
+</div>
+<div class="absolute top-10 left-4 w-px h-8 bg-surface-container"></div>
+</div>
+<div>
+<p class="text-xs font-bold text-primary">Setup concluído: #8812</p>
+<p class="text-[10px] text-on-surface-variant">Duração: 22min • Ontem</p>
+</div>
+</div>
+<div class="flex gap-4">
+<div class="relative">
+<div class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined text-sm" data-icon="history">history</span>
+</div>
+</div>
+<div>
+<p class="text-xs font-bold text-primary">Início de turno: Matutino</p>
+<p class="text-[10px] text-on-surface-variant">Equipe Alpha • Ontem</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Tabela Densa de Histórico Completo -->
+<section class="space-y-4">
+<div class="flex items-center justify-between">
+<h4 class="text-lg font-black text-primary tracking-tight">Histórico de Movimentações</h4>
+<button class="text-xs font-bold text-primary hover:underline flex items-center gap-1">
+                        Ver histórico completo
+                        <span class="material-symbols-outlined text-sm" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+<div class="overflow-hidden rounded-2xl border border-outline-variant/10 bg-surface-container-lowest">
+<table class="w-full text-left border-collapse">
+<thead class="bg-surface-container-low border-b border-outline-variant/10">
+<tr>
+<th class="px-6 py-4 text-[10px] font-black text-on-surface-variant uppercase tracking-widest">Data/Hora</th>
+<th class="px-6 py-4 text-[10px] font-black text-on-surface-variant uppercase tracking-widest">Pedido</th>
+<th class="px-6 py-4 text-[10px] font-black text-on-surface-variant uppercase tracking-widest">Ação</th>
+<th class="px-6 py-4 text-[10px] font-black text-on-surface-variant uppercase tracking-widest">Operador</th>
+<th class="px-6 py-4 text-[10px] font-black text-on-surface-variant uppercase tracking-widest text-right">Status</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/5">
+<tr class="hover:bg-surface-container-low/30 transition-colors">
+<td class="px-6 py-4 text-xs font-medium">24/05 - 14:20</td>
+<td class="px-6 py-4 text-xs font-bold text-primary">#8829</td>
+<td class="px-6 py-4 text-xs text-on-surface-variant">Transferência: Impressão → Acabamento</td>
+<td class="px-6 py-4 text-xs font-medium">Marcos O.</td>
+<td class="px-6 py-4 text-right">
+<span class="px-2 py-0.5 bg-green-100 text-green-700 text-[9px] font-black rounded uppercase">Concluído</span>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low/30 transition-colors">
+<td class="px-6 py-4 text-xs font-medium">24/05 - 13:45</td>
+<td class="px-6 py-4 text-xs font-bold text-primary">#8834</td>
+<td class="px-6 py-4 text-xs text-on-surface-variant">Setup de Máquina Iniciado</td>
+<td class="px-6 py-4 text-xs font-medium">André L.</td>
+<td class="px-6 py-4 text-right">
+<span class="px-2 py-0.5 bg-blue-100 text-blue-700 text-[9px] font-black rounded uppercase">Processando</span>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low/30 transition-colors">
+<td class="px-6 py-4 text-xs font-medium">24/05 - 11:12</td>
+<td class="px-6 py-4 text-xs font-bold text-primary">#8812</td>
+<td class="px-6 py-4 text-xs text-on-surface-variant">Verificação de Qualidade</td>
+<td class="px-6 py-4 text-xs font-medium">Carla R.</td>
+<td class="px-6 py-4 text-right">
+<span class="px-2 py-0.5 bg-tertiary/10 text-tertiary text-[9px] font-black rounded uppercase">Aprovado</span>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low/30 transition-colors">
+<td class="px-6 py-4 text-xs font-medium">23/05 - 17:50</td>
+<td class="px-6 py-4 text-xs font-bold text-primary">#8805</td>
+<td class="px-6 py-4 text-xs text-on-surface-variant">Movido para Fila de Espera</td>
+<td class="px-6 py-4 text-xs font-medium">Marcos O.</td>
+<td class="px-6 py-4 text-right">
+<span class="px-2 py-0.5 bg-surface-container text-on-surface-variant text-[9px] font-black rounded uppercase">Pausado</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</div>
+</main>
+</body></html>
