@@ -1,0 +1,24 @@
+services:
+  jrsnai_site:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: print-ai-production
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=${DATABASE_URL}
+      - NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
+      - NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+    # NOTA PARA O ENGENHEIRO:
+    # Não montamos volumes para /app/ em produção.
+    # O build já está contido na imagem.
+    networks:
+      - print-net
+
+networks:
+  print-net:
+    driver: bridge

@@ -112,7 +112,7 @@ export default function LandingPage() {
       <header className="sticky top-0 z-50 bg-gray-900/95 dark:bg-[#0A0A0B]/95 backdrop-blur-xl shadow-xl shadow-black/20 border-b border-white/10 transition-all duration-300">
         <div className="mx-auto flex max-w-7xl h-14 items-center justify-between px-6">
           <div className="flex items-center">
-            <img src="/logo.png" alt="Logo" className="h-10 w-auto object-contain" />
+            <img src="/logo-off.png" alt="Logo" className="h-10 w-auto object-contain" />
           </div>
 
           <nav className="hidden lg:flex items-center gap-5">
@@ -401,7 +401,8 @@ export default function LandingPage() {
           <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
             <div>
               <div className="mb-4">
-                <img src="/logo.png" alt="Logo" className="h-14 w-auto object-contain" />
+                <img src="/logo.png" alt="Logo" className="h-14 w-auto object-contain dark:hidden" />
+                <img src="/logo-off.png" alt="Logo" className="h-14 w-auto object-contain hidden dark:block" />
               </div>
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 Excelência em impressão digital com tecnologia de ponta e acabamento premium.

@@ -1,295 +1,277 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
-import {
-  LayoutDashboard,
-  Printer,
-  Users,
-  Package,
-  FileText,
-  Settings,
-  Kanban,
-  CreditCard,
-  MessageSquare,
-  BarChart3,
-  LogOut,
-  ChevronDown,
-  Sparkles,
-  Bell,
-  Search,
-  Menu,
-  X,
-} from 'lucide-react';
+import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/auth-context';
 import { useTenant } from '@/contexts/tenant-context';
+import { useSidebar } from '@/contexts/sidebar-context';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 
+// Hook personalizado para detectar mobile
+function useIsMobile(breakpoint = 1024) {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < breakpoint);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, [breakpoint]);
+
+  return isMobile;
+}
+
 const menuItems = [
-  {
-    group: 'Principal',
-    items: [
-      { name: 'Dashboard', icon: BarChart3, href: '/admin' },
-    ],
-  },
-  {
-    group: 'Operacional',
-    items: [
-      { name: 'Produção', icon: Kanban, href: '/producao', badge: 'Novo' },
-      { name: 'Pedidos', icon: Printer, href: '/pedidos' },
-      { name: 'Orçamentos', icon: FileText, href: '/orcamentos' },
-    ],
-  },
-  {
-    group: 'Gestão',
-    items: [
-      { name: 'Clientes', icon: Users, href: '/clientes' },
-      { name: 'Produtos', icon: Package, href: '/produtos' },
-      { name: 'Estoque', icon: Package, href: '/estoque' },
-      { name: 'Financeiro', icon: CreditCard, href: '/financeiro' },
-    ],
-  },
-  {
-    group: 'Inteligência',
-    items: [
-      { name: 'Conversas AI', icon: MessageSquare, href: '/conversas', badge: 'AI' },
-      { name: 'Relatórios', icon: BarChart3, href: '/relatorios' },
-    ],
-  },
+  { name: 'Painel', icon: 'dashboard', href: '/admin', color: 'slate' },
+  { name: 'Produção', icon: 'view_kanban', href: '/producao', color: 'sky' },
+  { name: 'Enviadas', icon: 'local_shipping', href: '/producao/enviadas', color: 'sky' },
+  { name: 'Setores', icon: 'layers', href: '/admin/setores', color: 'slate' },
+  { name: 'Usuários', icon: 'group_add', href: '/admin/usuarios', color: 'slate' },
+  { name: 'Pedidos', icon: 'description', href: '/pedidos', color: 'sky' },
+  { name: 'Orçamentos', icon: 'receipt_long', href: '/orcamentos', color: 'sky' },
+  { name: 'Produtos', icon: 'inventory_2', href: '/produtos', color: 'emerald' },
+  { name: 'Estoque', icon: 'warehouse', href: '/estoque', color: 'emerald' },
+  { name: 'Financeiro', icon: 'payments', href: '/financeiro', color: 'emerald' },
+  { name: 'Conversas com IA', icon: 'chat', href: '/conversas', color: 'violet' },
+  { name: 'Relatórios', icon: 'analytics', href: '/relatorios', color: 'violet' },
 ];
 
 interface SidebarProps {
   mobileOpen?: boolean;
   onMobileOpenChange?: (open: boolean) => void;
+  isMobile?: boolean;
 }
 
-export function Sidebar({ mobileOpen, onMobileOpenChange }: SidebarProps) {
+export function Sidebar({ mobileOpen, onMobileOpenChange, isMobile: forcedIsMobile }: SidebarProps) {
   const pathname = usePathname();
-  const { signOut, user } = useAuth();
-  const { tenant, profile } = useTenant();
-  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
-    'Principal': true,
-    'Operacional': true,
-    'Gestão': true,
-    'Inteligência': true,
-  });
-
-  const toggleGroup = (groupName: string) => {
-    setExpandedGroups(prev => ({
-      ...prev,
-      [groupName]: !prev[groupName],
-    }));
-  };
+  const { signOut } = useAuth();
+  const { profile } = useTenant();
+  const { isCollapsed, toggle } = useSidebar();
+  const detectedIsMobile = useIsMobile();
+  const isMobile = forcedIsMobile ?? detectedIsMobile;
 
   const SidebarContent = () => (
-    <>
-      {/* Header com Logo */}
-      <div className="p-6">
-        <div className="flex items-center justify-center">
-          <img 
-            src="/logo.png" 
-            alt="Logo" 
-            className="w-full max-w-[180px] h-auto object-contain"
-          />
-        </div>
-        <div className="mt-2 text-center">
-          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-bold opacity-60">
-            Operational Cockpit
-          </p>
-        </div>
+    <aside className={cn(
+      "flex flex-col h-full bg-[#1C1C1C] font-sans tracking-tight text-sm font-medium border-r border-white/5 transition-all duration-300",
+      isCollapsed && !isMobile ? "w-20 p-4" : "w-64 p-6"
+    )}>
+      {/* Header com Logo e Toggle */}
+      <div className={cn(
+        "flex items-center justify-between mb-8",
+        isCollapsed && !isMobile && "flex-col gap-4"
+      )}>
+        <motion.div 
+          animate={{ opacity: isCollapsed && !isMobile ? 0 : 1, width: isCollapsed && !isMobile ? 0 : 'auto' }}
+          className="overflow-hidden"
+        >
+          <div className="text-xl font-bold tracking-tighter text-white font-sans uppercase">
+            Print<span className="text-primary">.ai</span>
+          </div>
+        </motion.div>
+        
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={toggle}
+          className="h-8 w-8 rounded-lg text-slate-500 hover:text-white hover:bg-white/5 transition-all"
+        >
+          <span className={cn(
+            "material-symbols-outlined text-[20px] transition-transform duration-300",
+            isCollapsed && !isMobile ? "rotate-180" : ""
+          )}>
+            menu_open
+          </span>
+        </Button>
       </div>
 
-      {/* Search Bar - Estilo Modelo */}
-      <div className="px-4 py-2">
-        <div className="relative group">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-          <input
-            type="text"
-            placeholder="Buscar..."
-            className="w-full h-10 rounded-xl bg-white border border-border pl-10 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all shadow-sm"
-          />
+      {/* Perfil do Admin */}
+      <div className={cn(
+        "mb-8 px-1 transition-all duration-300",
+        isCollapsed && !isMobile ? "flex flex-col items-center" : ""
+      )}>
+        <div className={cn(
+          "flex items-center gap-3 p-2 rounded-xl border border-white/5 bg-white/[0.02]",
+          isCollapsed && !isMobile && "justify-center w-12 h-12 p-0"
+        )}>
+          <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center overflow-hidden shrink-0 shadow-lg shadow-primary/20">
+            <img
+              src={(profile as any)?.avatar_url || "https://api.dicebear.com/7.x/avataaars/svg?seed=Marcus"}
+              alt="Avatar"
+              className="w-full h-full object-cover"
+            />
+          </div>
+          
+          <AnimatePresence>
+            {(!isCollapsed || isMobile) && (
+              <motion.div 
+                initial={{ opacity: 0, width: 0 }}
+                animate={{ opacity: 1, width: 'auto' }}
+                exit={{ opacity: 0, width: 0 }}
+                className="flex-1 min-w-0"
+              >
+                <p className="text-[13px] font-bold text-white truncate leading-none mb-1">
+                  {profile?.name || 'Marcus Silva'}
+                </p>
+                <div className="flex items-center gap-2">
+                  <Badge className="text-[8px] h-3.5 bg-primary/20 text-primary border-none px-1 py-0 font-bold tracking-widest leading-none">
+                    PRO
+                  </Badge>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
 
       {/* Menu de Navegação */}
-      <nav className="flex-1 overflow-y-auto px-4 py-2 space-y-1">
-        {menuItems.map((group) => (
-          <div key={group.group} className="mb-2">
-            <button
-              onClick={() => toggleGroup(group.group)}
-              className="w-full flex items-center justify-between px-2 py-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground/60 hover:text-muted-foreground transition-colors"
-            >
-              {group.group}
-              <ChevronDown
-                className={cn(
-                  'h-3 w-3 transition-transform',
-                  expandedGroups[group.group] && 'rotate-180'
-                )}
-              />
-            </button>
-            <AnimatePresence>
-              {expandedGroups[group.group] && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="space-y-0.5 overflow-hidden"
-                >
-                  {group.items.map((item) => {
-                    const isActive = pathname === item.href || pathname?.startsWith(item.href + '/');
-                    return (
-                      <a
-                        key={item.name}
-                        href={item.href}
-                        className={cn(
-                          'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group relative mx-1',
-                          isActive
-                            ? 'bg-white text-foreground shadow-md shadow-black/5 border border-border'
-                            : 'text-muted-foreground hover:bg-white/50 hover:text-foreground'
-                        )}
-                        onClick={() => onMobileOpenChange?.(false)}
-                      >
-                        {isActive && (
-                          <motion.div
-                            layoutId="activeMenu"
-                            className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-6 bg-primary rounded-r-full"
-                          />
-                        )}
-                        <item.icon
-                          className={cn(
-                            'w-4 h-4 transition-colors',
-                            isActive ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground'
-                          )}
-                        />
-                        <span className="flex-1">{item.name}</span>
-                        {item.badge && (
-                          <Badge
-                            variant={item.badge === 'AI' ? 'purple' : 'info'}
-                            className="text-[10px] px-1.5 py-0"
-                          >
-                            {item.badge}
-                          </Badge>
-                        )}
-                      </a>
-                    );
-                  })}
-                </motion.div>
+      <nav className="flex-1 space-y-1 overflow-y-auto pr-2 custom-sidebar-scroll">
+        {menuItems.map((item) => {
+          const isActive = pathname === item.href || pathname?.startsWith(item.href + '/');
+          
+          const colorClasses: Record<string, { text: string; bg: string; active: string }> = {
+            slate: { text: "text-slate-500", bg: "bg-slate-500", active: "text-slate-200" },
+            sky: { text: "text-sky-500", bg: "bg-sky-500", active: "text-sky-400" },
+            emerald: { text: "text-emerald-500", bg: "bg-emerald-500", active: "text-emerald-400" },
+            violet: { text: "text-violet-500", bg: "bg-violet-500", active: "text-violet-400" },
+          };
+
+          const colors = colorClasses[item.color] || colorClasses.slate;
+          
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={cn(
+                'flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group relative',
+                isActive
+                  ? 'bg-white/5 text-white shadow-xl'
+                  : 'text-slate-500 hover:text-slate-300 hover:bg-white/[0.02]',
+                isCollapsed && !isMobile && "justify-center px-1"
               )}
-            </AnimatePresence>
-          </div>
-        ))}
+              onClick={() => onMobileOpenChange?.(false)}
+            >
+              <span className={cn(
+                "material-symbols-outlined text-[20px] transition-colors duration-200",
+                isActive ? colors.active : colors.text,
+                "group-hover:text-slate-300"
+              )}>
+                {item.icon}
+              </span>
+              
+              <AnimatePresence>
+                {(!isCollapsed || isMobile) && (
+                  <motion.span 
+                    initial={{ opacity: 0, x: -5 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -5 }}
+                    className="flex-1 font-semibold text-[13px] tracking-tight min-w-0"
+                  >
+                    {item.name}
+                  </motion.span>
+                )}
+              </AnimatePresence>
+              
+              {isActive && !isCollapsed && (
+                <div className={cn("w-1 h-5 rounded-full absolute right-0 translate-x-1", colors.bg)} />
+              )}
+            </Link>
+          );
+        })}
       </nav>
 
-      {/* Footer com User - Estilo Checkout */}
-      <div className="p-4 border-t border-border mt-auto">
-        <div className="space-y-4">
-          {/* User Info */}
-          <div className="flex items-center gap-3 p-2">
-            <div className="w-10 h-10 rounded-full bg-slate-200 border-2 border-white shadow-sm flex items-center justify-center overflow-hidden">
-              <img 
-                src={(profile as any)?.avatar_url || "https://api.dicebear.com/7.x/avataaars/svg?seed=Marcus"} 
-                alt="Avatar" 
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold truncate text-foreground">
-                {profile?.name || 'Marcus Silva'}
-              </p>
-              <p className="text-[10px] text-muted-foreground truncate uppercase font-medium">
-                {profile?.role === 'ADMIN' ? 'Production Lead' : 'Atelier Member'}
-              </p>
-            </div>
-          </div>
+      {/* Footer */}
+      <div className={cn(
+        "mt-auto pt-6 border-t border-white/5 space-y-2",
+        isCollapsed && !isMobile ? "flex flex-col items-center" : ""
+      )}>
+        <Button
+          variant="ghost"
+          className={cn(
+            "w-full justify-start text-slate-500 hover:text-white hover:bg-white/5 h-10 px-3 rounded-xl transition-all",
+            isCollapsed && !isMobile && "justify-center p-0"
+          )}
+          asChild
+        >
+          <Link href="/settings">
+            <span className="material-symbols-outlined text-[20px]">settings</span>
+            {(!isCollapsed || isMobile) && <span className="ml-3 font-semibold text-xs">Configurações</span>}
+          </Link>
+        </Button>
 
-          <div className="grid grid-cols-2 gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-9 text-[11px] rounded-lg border-border bg-white hover:bg-slate-50"
-              onClick={() => (window.location.href = '/configuracoes')}
-            >
-              <Settings className="w-3.5 h-3.5 mr-1.5" />
-              Ajustes
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-9 text-[11px] rounded-lg border-border bg-white text-red-500 hover:bg-red-50"
-              onClick={signOut}
-            >
-              <LogOut className="w-3.5 h-3.5 mr-1.5" />
-              Sair
-            </Button>
-          </div>
-        </div>
+        <Button
+          variant="ghost"
+          className={cn(
+            "w-full justify-start text-red-400 hover:text-red-500 hover:bg-red-500/5 h-10 px-3 rounded-xl transition-all",
+            isCollapsed && !isMobile && "justify-center p-0"
+          )}
+          onClick={signOut}
+        >
+          <span className="material-symbols-outlined text-[20px]">logout</span>
+          {(!isCollapsed || isMobile) && <span className="ml-3 font-semibold text-xs">Desconectar</span>}
+        </Button>
       </div>
-    </>
+    </aside>
   );
 
-  // Versão mobile (drawer)
-  if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+  // Mobile drawer
+  if (isMobile) {
     return (
       <AnimatePresence>
         {mobileOpen && (
           <>
-            {/* Overlay */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 lg:hidden"
+              className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50"
               onClick={() => onMobileOpenChange?.(false)}
             />
-            {/* Drawer */}
-            <motion.aside
+            <motion.div
               initial={{ x: '-100%' }}
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed left-0 top-0 h-screen w-72 bg-[#00020d] border-r border-white/5 flex flex-col z-50 lg:hidden"
+              transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+              className="fixed left-0 top-0 h-screen w-72 z-50 shadow-2xl"
             >
-              <button
-                onClick={() => onMobileOpenChange?.(false)}
-                className="absolute right-4 top-4 p-2 text-muted-foreground hover:text-foreground"
-              >
-                <X className="w-5 h-5" />
-              </button>
               <SidebarContent />
-            </motion.aside>
+            </motion.div>
           </>
         )}
       </AnimatePresence>
     );
   }
 
-  // Versão desktop (fixa)
   return (
-    <aside className="fixed left-0 top-0 h-screen w-64 bg-sidebar border-r border-border flex flex-col z-50">
+    <div className={cn(
+      "fixed left-0 top-0 h-screen z-50 transition-all duration-300 shadow-2xl",
+      isCollapsed && !isMobile ? "w-20" : "w-64"
+    )}>
       <SidebarContent />
-    </aside>
+    </div>
   );
 }
 
 export function MobileSidebarTrigger() {
   const [open, setOpen] = useState(false);
+  const isMobile = useIsMobile();
+
+  if (!isMobile) return null;
 
   return (
     <>
       <Button
         variant="ghost"
         size="icon"
-        className="lg:hidden"
         onClick={() => setOpen(true)}
+        className="fixed top-4 left-4 z-40 bg-white/80 backdrop-blur-xl shadow-lg border border-slate-200"
       >
-        <Menu className="w-5 h-5" />
+        <span className="material-symbols-outlined">menu</span>
       </Button>
-      <Sidebar mobileOpen={open} onMobileOpenChange={setOpen} />
+      <Sidebar mobileOpen={open} onMobileOpenChange={setOpen} isMobile={true} />
     </>
   );
 }
-

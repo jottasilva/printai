@@ -137,9 +137,9 @@ export default async function OrderDetailPage({ params }: { params: { id: string
               </Button>
               <div>
                 <div className="flex items-center gap-3">
-                  <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Pedido {order.number}</h1>
+                  <h1 className="text-2xl font-light text-gray-900 tracking-tight">Pedido {order.number}</h1>
                   <Badge variant="outline" className={cn(
-                    "px-3 py-1 rounded-full text-xs font-semibold border-2 capitalize",
+                    "px-3 py-1 rounded-full text-xs font-normal border-2 capitalize",
                     order.status === 'DELIVERED' ? "bg-emerald-50 text-emerald-700 border-emerald-100" :
                     order.status === 'CANCELED' ? "bg-red-50 text-red-700 border-red-100" :
                     order.status === 'IN_PRODUCTION' ? "bg-blue-50 text-blue-700 border-blue-100" :
@@ -159,7 +159,7 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                 <Download className="w-4 h-4 mr-2" />
                 PDF
               </Button>
-              <Button className="rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9] text-white shadow-lg shadow-purple-200">
+              <Button className="rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-normal shadow-lg shadow-slate-200">
                 <Edit className="w-4 h-4 mr-2" />
                 Editar Pedido
               </Button>
@@ -172,9 +172,9 @@ export default async function OrderDetailPage({ params }: { params: { id: string
               {/* Itens do Pedido */}
               <Card className="border-none shadow-premium bg-white rounded-2xl overflow-hidden">
                 <CardHeader className="border-b border-gray-50 bg-gray-50/30">
-                  <CardTitle className="flex items-center gap-3 text-lg font-bold text-gray-900">
+                  <CardTitle className="flex items-center gap-3 text-lg font-normal text-gray-900">
                     <div className="p-2 bg-purple-100 rounded-lg">
-                      <Package className="w-5 h-5 text-[#7C3AED]" />
+                      <Package className="w-5 h-5 text-primary" />
                     </div>
                     Itens do Pedido
                   </CardTitle>
@@ -185,10 +185,10 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                       <Table>
                         <TableHeader>
                           <TableRow className="bg-gray-50/50 hover:bg-transparent border-b border-gray-100">
-                            <TableHead className="py-4 px-6 text-gray-600 font-semibold uppercase text-[10px] tracking-wider">Produto / Serviço</TableHead>
-                            <TableHead className="py-4 px-4 text-gray-600 font-semibold uppercase text-[10px] tracking-wider">Qtd</TableHead>
-                            <TableHead className="py-4 px-4 text-gray-600 font-semibold uppercase text-[10px] tracking-wider text-right">Unitário</TableHead>
-                            <TableHead className="py-4 px-4 text-gray-600 font-semibold uppercase text-[10px] tracking-wider text-right">Total</TableHead>
+                            <TableHead className="py-4 px-6 text-gray-600 font-normal uppercase text-[10px] tracking-wider">Produto / Serviço</TableHead>
+                            <TableHead className="py-4 px-4 text-gray-600 font-normal uppercase text-[10px] tracking-wider">Qtd</TableHead>
+                            <TableHead className="py-4 px-4 text-gray-600 font-normal uppercase text-[10px] tracking-wider text-right">Unitário</TableHead>
+                            <TableHead className="py-4 px-4 text-gray-600 font-normal uppercase text-[10px] tracking-wider text-right">Total</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -200,19 +200,19 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                                     <ShoppingCart className="w-5 h-5" />
                                   </div>
                                   <div>
-                                    <p className="font-bold text-gray-900">{item.product?.name || 'Produto removido'}</p>
+                                    <p className="font-normal text-gray-900">{item.product?.name || 'Produto removido'}</p>
                                     {item.variant && (
-                                      <p className="text-xs font-semibold text-purple-600 bg-purple-50 px-2 py-0.5 rounded mt-1 inline-block">
+                                      <p className="text-xs font-normal text-primary bg-primary/5 px-2 py-0.5 rounded mt-1 inline-block">
                                         {item.variant.name}
                                       </p>
                                     )}
                                   </div>
                                 </div>
                               </TableCell>
-                              <TableCell className="py-5 px-4 font-bold text-gray-700">{Number(item.quantity)}</TableCell>
-                              <TableCell className="py-5 px-4 text-right text-gray-600 font-medium">{formatCurrency(Number(item.unitPrice))}</TableCell>
+                              <TableCell className="py-5 px-4 font-normal text-gray-700">{Number(item.quantity)}</TableCell>
+                              <TableCell className="py-5 px-4 text-right text-gray-600 font-normal">{formatCurrency(Number(item.unitPrice))}</TableCell>
                               <TableCell className="py-5 px-4 text-right">
-                                <span className="font-extrabold text-[#7C3AED]">{formatCurrency(Number(item.total))}</span>
+                                <span className="font-normal text-primary">{formatCurrency(Number(item.total))}</span>
                               </TableCell>
                             </TableRow>
                           ))}
@@ -232,7 +232,7 @@ export default async function OrderDetailPage({ params }: { params: { id: string
               {order.receivables.length > 0 && (
                 <Card className="border-none shadow-premium bg-white rounded-2xl overflow-hidden">
                   <CardHeader className="border-b border-gray-50">
-                    <CardTitle className="flex items-center gap-3 text-lg font-bold text-gray-900">
+                    <CardTitle className="flex items-center gap-3 text-lg font-normal text-gray-900">
                       <div className="p-2 bg-emerald-100 rounded-lg">
                         <FileText className="w-5 h-5 text-emerald-600" />
                       </div>
@@ -243,17 +243,17 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                     <Table>
                       <TableHeader>
                         <TableRow className="bg-gray-50/50 border-b border-gray-100">
-                          <TableHead className="py-4 px-6 text-gray-600 font-semibold uppercase text-[10px] tracking-wider">Descrição</TableHead>
-                          <TableHead className="py-4 px-4 text-gray-600 font-semibold uppercase text-[10px] tracking-wider">Valor</TableHead>
-                          <TableHead className="py-4 px-4 text-gray-600 font-semibold uppercase text-[10px] tracking-wider">Vencimento</TableHead>
-                          <TableHead className="py-4 px-6 text-gray-600 font-semibold uppercase text-[10px] tracking-wider text-right">Status</TableHead>
+                          <TableHead className="py-4 px-6 text-gray-600 font-normal uppercase text-[10px] tracking-wider">Descrição</TableHead>
+                          <TableHead className="py-4 px-4 text-gray-600 font-normal uppercase text-[10px] tracking-wider">Valor</TableHead>
+                          <TableHead className="py-4 px-4 text-gray-600 font-normal uppercase text-[10px] tracking-wider">Vencimento</TableHead>
+                          <TableHead className="py-4 px-6 text-gray-600 font-normal uppercase text-[10px] tracking-wider text-right">Status</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {order.receivables.map((receivable) => (
                           <TableRow key={receivable.id} className="hover:bg-gray-50/50 border-b border-gray-50 last:border-0 text-sm">
-                            <TableCell className="py-4 px-6 font-medium text-gray-900">{receivable.description || '-'}</TableCell>
-                            <TableCell className="py-4 px-4 font-bold text-gray-900">
+                            <TableCell className="py-4 px-6 font-normal text-gray-900">{receivable.description || '-'}</TableCell>
+                            <TableCell className="py-4 px-4 font-normal text-gray-900">
                               {formatCurrency(Number(receivable.amount))}
                             </TableCell>
                             <TableCell className="py-4 px-4 text-gray-600">
@@ -261,7 +261,7 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                             </TableCell>
                             <TableCell className="py-4 px-6 text-right">
                               <Badge variant="outline" className={cn(
-                                "px-2 py-0.5 rounded-full text-[10px] font-bold border capitalize",
+                                "px-2 py-0.5 rounded-full text-[10px] font-normal border capitalize",
                                 receivable.status === 'PAID' ? "bg-emerald-50 text-emerald-700 border-emerald-100" :
                                 receivable.status === 'OVERDUE' ? "bg-red-50 text-red-700 border-red-100" :
                                 "bg-gray-50 text-gray-700 border-gray-100"
@@ -283,18 +283,18 @@ export default async function OrderDetailPage({ params }: { params: { id: string
               {/* Cliente Info */}
               <Card className="border-none shadow-premium bg-white rounded-2xl">
                 <CardHeader>
-                  <CardTitle className="text-sm font-bold uppercase tracking-wider text-gray-500">
-                    Cliente
+                  <CardTitle className="text-[10px] font-normal uppercase tracking-widest text-gray-400">
+                    Propriedade do Cliente
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4 pt-0">
                   <div className="flex items-center gap-4">
-                    <div className="h-12 w-12 rounded-full bg-purple-50 flex items-center justify-center text-purple-600 font-bold text-lg border-2 border-purple-100">
+                    <div className="h-12 w-12 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 font-normal text-lg border border-slate-100">
                       {order.customer?.name?.[0].toUpperCase()}
                     </div>
                     <div>
-                      <p className="text-base font-bold text-gray-900">{order.customer?.name}</p>
-                      <p className="text-sm text-gray-500 italic">{order.customer?.document || 'Documento não informado'}</p>
+                      <p className="text-base font-normal text-gray-900">{order.customer?.name}</p>
+                      <p className="text-sm text-gray-500 font-light">{order.customer?.document || 'Documento não informado'}</p>
                     </div>
                   </div>
                   <div className="space-y-3 pt-2 border-t border-gray-50">
@@ -312,7 +312,7 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                       <div className="flex items-start gap-3 text-sm text-gray-600">
                         <div className="p-1.5 bg-gray-50 rounded-md mt-0.5"><MapPin className="w-4 h-4" /></div>
                         <div>
-                          <p className="font-semibold text-gray-900">{shippingAddress.street}, {shippingAddress.number}</p>
+                          <p className="font-normal text-gray-900">{shippingAddress.street}, {shippingAddress.number}</p>
                           <p className="text-xs text-gray-500">{shippingAddress.city} - {shippingAddress.state}</p>
                         </div>
                       </div>
@@ -324,21 +324,21 @@ export default async function OrderDetailPage({ params }: { params: { id: string
               {/* Resumo de Valores */}
               <Card className="border-none shadow-premium bg-[#111827] text-white rounded-2xl overflow-hidden">
                 <CardHeader>
-                  <CardTitle className="text-sm font-bold uppercase tracking-wider text-gray-400">
-                    Resumo Financeiro
+                  <CardTitle className="text-[10px] font-normal uppercase tracking-widest text-white/50">
+                    Consolidação Financeira
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-5">
                   <div className="space-y-3">
-                    <div className="flex justify-between text-sm opacity-80 font-medium">
+                    <div className="flex justify-between text-sm opacity-80 font-normal">
                       <span>Subtotal</span>
                       <span>{formatCurrency(Number(order.subtotal))}</span>
                     </div>
-                    <div className="flex justify-between text-sm text-emerald-400 font-medium">
+                    <div className="flex justify-between text-sm text-emerald-400 font-normal">
                       <span>Descontos</span>
                       <span>-{formatCurrency(Number(order.discountAmount))}</span>
                     </div>
-                    <div className="flex justify-between text-sm opacity-80 font-medium">
+                    <div className="flex justify-between text-sm opacity-80 font-normal">
                       <span>Frete / Taxas</span>
                       <span>{formatCurrency(Number(order.shippingAmount) + Number(order.taxAmount))}</span>
                     </div>
@@ -346,8 +346,8 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                   
                   <div className="pt-4 border-t border-white/10">
                     <div className="flex justify-between items-end">
-                      <span className="text-sm font-bold uppercase text-gray-400 mb-1">Total Geral</span>
-                      <span className="text-3xl font-extrabold text-white">
+                      <span className="text-[10px] font-normal uppercase text-white/40 mb-1">Total Consolidado</span>
+                      <span className="text-3xl font-light text-white tracking-tighter">
                         {formatCurrency(Number(order.total))}
                       </span>
                     </div>
@@ -355,20 +355,20 @@ export default async function OrderDetailPage({ params }: { params: { id: string
 
                   <div className="grid grid-cols-2 gap-3 pt-2">
                     <div className="bg-emerald-500/10 border border-emerald-500/20 p-3 rounded-xl">
-                      <p className="text-[10px] uppercase font-bold text-emerald-400">Pago</p>
-                      <p className="font-bold text-emerald-300">{formatCurrency(Number(order.paidAmount))}</p>
+                      <p className="text-[10px] uppercase font-normal text-emerald-400">Pago</p>
+                      <p className="font-normal text-emerald-300">{formatCurrency(Number(order.paidAmount))}</p>
                     </div>
                     <div className="bg-amber-500/10 border border-amber-500/20 p-3 rounded-xl">
-                      <p className="text-[10px] uppercase font-bold text-amber-400">Restante</p>
-                      <p className="font-bold text-amber-300">{formatCurrency(Number(order.remainingAmount))}</p>
+                      <p className="text-[10px] uppercase font-normal text-amber-400">Restante</p>
+                      <p className="font-normal text-amber-300">{formatCurrency(Number(order.remainingAmount))}</p>
                     </div>
                   </div>
 
                   <Badge className={cn(
-                    "w-full justify-center py-3 rounded-xl text-xs font-extrabold uppercase tracking-[0.1em]",
+                    "w-full justify-center py-3 rounded-xl text-[10px] font-normal uppercase tracking-[0.15em]",
                     order.paymentStatus === 'PAID' ? "bg-emerald-500 hover:bg-emerald-600 text-white" :
                     order.paymentStatus === 'OVERDUE' ? "bg-red-500 hover:bg-red-600 text-white" :
-                    "bg-[#7C3AED] hover:bg-[#6D28D9] text-white"
+                    "bg-slate-900 border-none text-white shadow-lg active:scale-95"
                   )}>
                     {paymentStatusLabels[order.paymentStatus] || order.paymentStatus}
                   </Badge>
@@ -378,9 +378,9 @@ export default async function OrderDetailPage({ params }: { params: { id: string
               {/* Status de Produção */}
               <Card className="border-none shadow-premium bg-white rounded-2xl">
                 <CardHeader>
-                  <CardTitle className="text-sm font-bold uppercase tracking-wider text-gray-500 flex items-center justify-between">
-                    Produção
-                    <Printer className="w-4 h-4 text-[#7C3AED]" />
+                  <CardTitle className="text-[10px] font-normal uppercase tracking-widest text-gray-500 flex items-center justify-between">
+                    Progresso Operacional
+                    <Printer className="w-4 h-4 text-primary" />
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4 pt-0">
@@ -388,7 +388,7 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium text-gray-600">Status Atual:</span>
                       <Badge variant="outline" className={cn(
-                        "rounded-full px-3 font-bold border-2",
+                        "rounded-full px-3 font-normal border-2",
                         order.productionStatus === 'DONE' ? "bg-emerald-50 text-emerald-700 border-emerald-100" :
                         order.productionStatus === 'IN_PROGRESS' ? "bg-blue-50 text-blue-700 border-blue-100" :
                         "bg-gray-50 text-gray-700 border-gray-100"
@@ -401,9 +401,9 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                     <div className="p-4 bg-purple-50 rounded-2xl border border-purple-100">
                       <div className="flex items-center gap-3 text-purple-600 mb-1">
                         <Calendar className="w-4 h-4" />
-                        <span className="text-[10px] font-bold uppercase tracking-wider">Entrega Prevista</span>
+                        <span className="text-[10px] font-normal uppercase tracking-wider">Entrega Prevista</span>
                       </div>
-                      <p className="text-lg font-bold text-purple-900">
+                      <p className="text-lg font-light text-purple-900 tracking-tight">
                         {new Date(order.expectedDeliveryAt).toLocaleDateString('pt-BR')}
                       </p>
                     </div>

@@ -1,77 +1,134 @@
 'use server'
 
-import { prisma } from '@/lib/db'
-import { revalidatePath } from 'next/cache'
-import { createClient } from '@/lib/supabase/server'
-import { OrderItemStatus } from '@prisma/client'
+import { prisma } from '@/lib/db';
+import { withTenant, getTenantId } from '@/lib/server-utils';
+import { revalidatePath } from 'next/cache';
+import { OrderItemStatus } from '@prisma/client';
 
-async function getTenantId() {
-  const supabase = createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Unauthorized')
+export const getProductionKanbanData = withTenant(async () => {
+  const sectors = await prisma.sector.findMany({
+    where: { status: 'OPERATIONAL' },
+    include: {
+      machines: {
+        where: { status: 'OPERATIONAL' }
+      }
+    },
+    orderBy: { kanbanOrder: 'asc' },
+  });
 
-  const profile = await prisma.user.findUnique({
-    where: { id: user.id },
-    select: { tenantId: true }
-  })
-
-  if (!profile) throw new Error('Profile not found')
-  return profile.tenantId
-}
-
-export async function getProductionItems() {
-  const tenantId = await getTenantId()
-  
-  return prisma.orderItem.findMany({
-    where: { 
-      tenantId,
+  const activeItems = await prisma.orderItem.findMany({
+    where: {
       status: {
-        notIn: ['CANCELED', 'REJECTED']
+        notIn: ['SHIPPED', 'CANCELED']
       }
     },
     include: {
-      product: true,
-      variant: true,
-      order: {
-        include: {
-          customer: true
+      product: {
+        select: {
+          name: true,
+          thumbnailUrl: true,
         }
+      },
+      order: {
+        select: {
+          number: true,
+          customer: {
+            select: {
+              name: true,
+            }
+          }
+        }
+      },
+      assignedUser: {
+        select: {
+          name: true,
+          avatarUrl: true,
+        }
+      },
+      machineUsageLogs: {
+        where: { endTime: null },
+        include: {
+          machine: {
+            select: { name: true }
+          }
+        },
+        take: 1
       }
     },
     orderBy: [
       { priority: 'desc' },
+      { dueDate: 'asc' },
       { createdAt: 'asc' }
     ]
-  })
-}
+  });
 
-export async function updateProductionStatus(id: string, status: OrderItemStatus) {
-  const tenantId = await getTenantId()
+  return { sectors, items: activeItems };
+});
 
-  const data: any = { status }
+export const moveOrderItem = withTenant(async (orderItemId: string, targetSectorId: string | null) => {
+  const { userId, tenantId } = await getTenantId();
+  
+  const currentItem = await prisma.orderItem.findUnique({
+    where: { id: orderItemId },
+    include: { sector: true }
+  });
 
-  if (status === 'IN_PROGRESS') {
-    data.startedAt = new Date()
-  } else if (status === 'DONE') {
-    data.finishedAt = new Date()
-  }
+  if (!currentItem) throw new Error("Item não encontrado");
 
-  await prisma.orderItem.update({
-    where: { id, tenantId },
-    data
-  })
+  const targetSector = targetSectorId 
+    ? await prisma.sector.findUnique({ where: { id: targetSectorId } })
+    : null;
 
-  revalidatePath('/producao')
-  revalidatePath('/')
-}
+  const item = await prisma.orderItem.update({
+    where: { id: orderItemId },
+    data: {
+      sectorId: targetSectorId,
+      status: targetSectorId ? 'IN_PROGRESS' : currentItem.status,
+    }
+  });
 
-export async function updateItemNote(id: string, note: string) {
-  const tenantId = await getTenantId()
+  // Criar Log
+  await prisma.orderItemLog.create({
+    data: {
+      tenantId,
+      orderItemId,
+      userId,
+      fromStatus: currentItem.status,
+      toStatus: targetSectorId ? 'IN_PROGRESS' : currentItem.status,
+      note: `Movido de [${currentItem.sector?.name || 'Triagem'}] para [${targetSector?.name || 'Triagem'}]`,
+    }
+  });
 
-  await prisma.orderItem.update({
-    where: { id, tenantId },
+  revalidatePath('/producao');
+  return item;
+});
+
+export const updateOrderItemStatus = withTenant(async (id: string, status: OrderItemStatus) => {
+  const item = await prisma.orderItem.update({
+    where: { id },
+    data: { status }
+  });
+  revalidatePath('/producao');
+  return item;
+});
+
+export const getProductionItemLogs = withTenant(async (orderItemId: string) => {
+  return await prisma.orderItemLog.findMany({
+    where: { orderItemId },
+    include: {
+      user: {
+        select: { name: true }
+      }
+    },
+    orderBy: { createdAt: 'desc' }
+  });
+});
+
+export const updateItemNote = withTenant(async (id: string, note: string) => {
+  const item = await prisma.orderItem.update({
+    where: { id },
     data: { productionNotes: note }
-  })
-
-  revalidatePath('/producao')
-}
+  });
+  revalidatePath('/producao');
+  return item;
+});

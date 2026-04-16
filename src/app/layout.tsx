@@ -1,14 +1,16 @@
-import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import type { Metadata } from "next";
 import "@/styles/globals.css";
 import { AuthProvider } from "@/contexts/auth-context";
 import { TenantProvider } from "@/contexts/tenant-context";
 import { ThemeProvider } from "@/contexts/theme-context";
+import { SidebarProvider } from "@/contexts/sidebar-context";
+import { ToastProvider } from "@/components/ui/toast";
 
 const inter = Inter({
   subsets: ["latin"],
-  display: "swap",
   variable: "--font-inter",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -45,14 +47,23 @@ export const viewport = {
   ],
 };
 
+import { Toaster } from "sonner";
+import { RecoveryScript } from "@/components/error-handling/recovery-script";
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR" suppressHydrationWarning className={inter.variable}>
+    <html
+      lang="pt-BR"
+      suppressHydrationWarning
+      className={`${inter.variable}`}
+    >
       <head>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" />
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" />
         {/* Inline script to prevent FOUC - applies theme before React hydrates */}
         <script
           dangerouslySetInnerHTML={{
@@ -71,11 +82,17 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={`${inter.className} min-h-screen bg-background antialiased transition-colors duration-300`}>
+      <body className={`${inter.variable} ${inter.className} min-h-screen bg-background antialiased transition-colors duration-300`}>
+        <RecoveryScript />
         <ThemeProvider>
           <AuthProvider>
             <TenantProvider>
-              {children}
+              <SidebarProvider>
+                <ToastProvider>
+                  {children}
+                  <Toaster richColors position="top-right" />
+                </ToastProvider>
+              </SidebarProvider>
             </TenantProvider>
           </AuthProvider>
         </ThemeProvider>

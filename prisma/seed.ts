@@ -134,17 +134,25 @@ async function main() {
   });
 
   // 7. Criar Cliente
-  const customer = await prisma.customer.upsert({
-    where: { uq_customer_document: { tenantId: tenant.id, document: '12345678901' } },
-    update: {},
-    create: {
-      tenantId: tenant.id,
-      name: 'Cliente Exemplo LTDA',
-      email: 'cliente@exemplo.com',
-      document: '12345678901',
-      phone: '11999999999'
-    }
+  const existingCustomer = await prisma.customer.findFirst({
+    where: { tenantId: tenant.id, document: '12345678901' }
   });
+
+  let customer;
+  if (existingCustomer) {
+    customer = existingCustomer;
+  } else {
+    customer = await prisma.customer.create({
+      data: {
+        tenantId: tenant.id,
+        name: 'Cliente Exemplo LTDA',
+        email: 'cliente@exemplo.com',
+        document: '12345678901',
+        documentType: 'CPF',
+        phone: '11999999999'
+      }
+    });
+  }
 
   // 8. Criar Pedidos para o Kanban
   const order1 = await prisma.order.create({

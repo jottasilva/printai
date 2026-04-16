@@ -6,154 +6,48 @@ import { StatCard } from '@/components/ui/stat-card';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { EmptyState } from '@/components/ui/empty-state';
 import { cn } from '@/lib/utils';
-import {
-  TrendingUp,
-  TrendingDown,
-  DollarSign,
-  ShoppingCart,
-  Users,
-  Package,
-  Activity,
-  ArrowUpRight,
-  ArrowDownRight,
-  Clock,
-  CheckCircle2,
-  AlertTriangle,
-  BarChart3,
-  PieChart,
-  LineChart,
-} from 'lucide-react';
-import { prisma } from '@/lib/db';
 import Link from 'next/link';
-
-
-async function getDashboardCockpitData() {
-  const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/login');
-
-  const profile = await prisma.user.findUnique({
-    where: { id: user.id },
-    select: { tenantId: true, name: true, role: true }
-  });
-
-  if (!profile) throw new Error('Profile not found');
-
-  const tenantId = profile.tenantId;
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
-  const weekAgo = new Date(today);
-  weekAgo.setDate(weekAgo.getDate() - 7);
-
-  // Stats principais
-  const [totalRevenue, monthlyRevenue, totalOrders, monthlyOrders, totalCustomers, activeProducts] = await Promise.all([
-    prisma.payment.aggregate({
-      where: { tenantId, status: 'PAID' },
-      _sum: { amount: true }
-    }),
-    prisma.payment.aggregate({
-      where: { tenantId, status: 'PAID', createdAt: { gte: monthStart } },
-      _sum: { amount: true }
-    }),
-    prisma.order.count({ where: { tenantId, } }),
-    prisma.order.count({ where: { tenantId, createdAt: { gte: monthStart }, } }),
-    prisma.customer.count({ where: { tenantId, } }),
-    prisma.product.count({ where: { tenantId, isActive: true, } }),
-  ]);
-
-  // Pedidos por status
-  const ordersByStatus = await prisma.order.groupBy({
-    by: ['status'],
-    where: { tenantId, },
-    _count: { status: true }
-  });
-
-  // Produção por status
-  const productionByStatus = await prisma.orderItem.groupBy({
-    by: ['status'],
-    where: { tenantId, },
-    _count: { status: true }
-  });
-
-  // Top produtos
-  const topProducts = await prisma.orderItem.groupBy({
-    by: ['productId'],
-    where: { tenantId, },
-    _sum: { quantity: true },
-    orderBy: { _sum: { quantity: 'desc' } },
-    take: 5,
-  });
-
-  const topProductDetails = await Promise.all(
-    topProducts
-      .filter(item => item.productId)
-      .map(async (item) => {
-        const product = await prisma.product.findUnique({
-          where: { id: item.productId! },
-          select: { name: true, sku: true }
-        });
-        return {
-          product: product?.name || 'Produto removido',
-          sku: product?.sku || '-',
-          quantity: Number(item._sum.quantity || 0)
-        };
-      })
-  );
-
-  // Pedidos recentes
-  const recentOrders = await prisma.order.findMany({
-    where: { tenantId, },
-    take: 10,
-    orderBy: { createdAt: 'desc' },
-    include: {
-      customer: { select: { name: true } },
-      items: { select: { quantity: true, total: true } }
-    }
-  });
-
-  // Contas a receber/pagar
-  const receivables = await prisma.receivable.aggregate({
-    where: { tenantId, status: 'PENDING' },
-    _sum: { amount: true }
-  });
-
-  const payables = await prisma.payable.aggregate({
-    where: { tenantId, status: 'PENDING' },
-    _sum: { amount: true }
-  });
-
-  return {
-    userName: profile.name,
-    role: profile.role,
-    stats: {
-      totalRevenue: Number(totalRevenue._sum.amount || 0),
-      monthlyRevenue: Number(monthlyRevenue._sum.amount || 0),
-      totalOrders,
-      monthlyOrders,
-      totalCustomers,
-      activeProducts,
-      pendingReceivables: Number(receivables._sum.amount || 0),
-      pendingPayables: Number(payables._sum.amount || 0),
-    },
-    ordersByStatus: ordersByStatus.reduce((acc, item) => {
-      acc[item.status] = item._count.status;
-      return acc;
-    }, {} as Record<string, number>),
-    productionByStatus: productionByStatus.reduce((acc, item) => {
-      acc[item.status] = item._count.status;
-      return acc;
-    }, {} as Record<string, number>),
-    topProducts: topProductDetails,
-    recentOrders,
-  };
-}
-
+import { getTenantId } from '@/lib/server-utils';
 import { Sidebar } from '@/components/sidebar';
 import { ActivityChart } from '@/components/dashboard/activity-chart';
+import { BarChart3, Rocket, AlertTriangle, ChevronRight } from 'lucide-react';
+import { getDashboardData } from '@/app/actions/dashboard';
+
+async function getDashboardCockpitData() {
+  let authData;
+  try {
+    authData = await getTenantId();
+  } catch (error: any) {
+    if (error.message.includes('not authenticated')) {
+      redirect('/login');
+    }
+    redirect(`/login?error=profile_missing&details=${encodeURIComponent(error.message)}`);
+  }
+
+  const { userName, userRole } = {
+    userName: (authData as any).userName || authData.userEmail.split('@')[0],
+    userRole: authData.userRole
+  } as any;
+
+  // Busca dados unificados e protegidos via Server Action
+  const dashboardData = await getDashboardData();
+
+  return {
+    userName,
+    role: userRole,
+    stats: {
+      totalRevenue: dashboardData.stats.totalRevenue,
+      availableCash: dashboardData.stats.availableCash,
+      totalOrders: dashboardData.stats.pendingOrders + dashboardData.stats.ordersThisMonth, // Soma ilustrativa
+      monthlyOrders: dashboardData.stats.ordersThisMonth,
+      totalCustomers: dashboardData.stats.totalCustomers,
+    },
+    ordersByStatus: dashboardData.ordersByStatus,
+    productionByStatus: dashboardData.productionByStatus,
+    recentOrders: dashboardData.recentOrders,
+  };
+}
 
 export default async function DashboardCockpitPage() {
   const data = await getDashboardCockpitData();
@@ -168,186 +62,155 @@ export default async function DashboardCockpitPage() {
   const statusLabels: Record<string, string> = {
     DRAFT: 'Rascunho',
     CONFIRMED: 'Confirmado',
-    IN_PRODUCTION: 'Em Produção',
+    IN_PRODUCTION: 'Produção',
     READY: 'Pronto',
     SHIPPED: 'Enviado',
     DELIVERED: 'Entregue',
     CANCELED: 'Cancelado',
   };
 
-  const productionStatusLabels: Record<string, string> = {
-    WAITING: 'Aguardando',
-    IN_QUEUE: 'Na Fila',
-    IN_PROGRESS: 'Em Progresso',
-    PAUSED: 'Pausado',
-    DONE: 'Concluído',
-    REJECTED: 'Rejeitado',
-  };
-
   return (
-    <div className="flex h-screen bg-[#F8F9FA] dark:bg-[#0A0A0B] admin-theme font-sans">
+    <div className="flex bg-[#F8F9FA] dark:bg-slate-950 min-h-screen">
       <Sidebar />
 
-      <main className="flex-1 overflow-y-auto p-4 lg:p-8">
+      <main className="flex-1 overflow-y-auto p-4 lg:p-10 ml-64">
         <div className="max-w-7xl mx-auto space-y-10">
-          {/* Header - Estilo Premium */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
-            <div>
-              <span className="text-[10px] font-extrabold text-primary uppercase tracking-[0.2em] mb-2 block">
-                Administrative Cockpit
-              </span>
-              <h1 className="text-4xl font-black text-foreground tracking-tighter">
-                Operational Dashboard
-              </h1>
-              <p className="text-sm text-muted-foreground mt-1">
-                Overview of your print atelier performance and production status.
+          
+          {/* Top Header Section */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div className="space-y-1">
+              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.2em]">
+                Sistema de Gestão Visual
               </p>
+              <h1 className="text-3xl font-normal text-[#2D3E50] dark:text-white tracking-tight">
+                Painel <span className="font-semibold text-primary">Operacional</span>
+              </h1>
             </div>
-            <div className="flex items-center gap-4">
-              <div className="flex -space-x-3 overflow-hidden">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="inline-block h-10 w-10 rounded-full ring-4 ring-white">
-                    <img
-                      className="h-full w-full rounded-full bg-slate-100"
-                      src={`https://api.dicebear.com/7.x/avataaars/svg?seed=User${i}`}
-                      alt="Team"
-                    />
-                  </div>
-                ))}
-              </div>
-              <Button className="rounded-full bg-primary hover:bg-primary/90 text-white font-bold h-11 px-6 shadow-lg shadow-primary/20">
-                <Activity className="w-4 h-4 mr-2" />
-                Live Control
+
+            <div className="flex items-center gap-3">
+              <Button variant="outline" className="rounded-xl border-slate-200 bg-white shadow-sm h-11 text-xs">
+                <BarChart3 className="w-4 h-4 mr-2" />
+                Auditoria em Tempo Real
               </Button>
             </div>
           </div>
 
-          {/* Stats Cards - Grid do Modelo */}
+          {/* Core Metrics Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             <StatCard
-              title="Operational Revenue"
-              value={formatCurrency(data.stats.totalRevenue)}
-              icon={<DollarSign className="w-6 h-6" />}
-              trend={{ value: 12.5, label: 'Growth', positive: true }}
+              title="Receita Mensal"
+              value={formatCurrency(data.stats.monthlyRevenue)}
+              icon={<span className="material-symbols-outlined">payments</span>}
+              trend={{ value: 12.5, label: 'Crescimento', positive: true }}
               color="success"
+              className="border-none shadow-md rounded-[2rem] bg-white"
             />
             <StatCard
-              title="Active Orders"
+              title="Carga de Produção"
+              value={`${Object.values(data.productionByStatus).reduce((a, b) => a + b, 0)} Itens`}
+              icon={<span className="material-symbols-outlined">view_kanban</span>}
+              trend={{ value: 4, label: 'Urgente', positive: false }}
+              className="border-none shadow-md rounded-[2rem] bg-white"
+            />
+            <StatCard
+              title="Pedidos Ativos"
               value={data.stats.totalOrders}
-              icon={<ShoppingCart className="w-6 h-6" />}
-              trend={{ value: 4.2, label: 'Volume', positive: true }}
+              icon={<span className="material-symbols-outlined">description</span>}
               color="info"
+              className="border-none shadow-md rounded-[2rem] bg-white"
             />
             <StatCard
-              title="Production Load"
-              value={`${Object.values(data.productionByStatus).reduce((a, b) => a + b, 0)} items`}
-              icon={<Activity className="w-6 h-6" />}
-              trend={{ value: 2.1, label: 'Efficiency', positive: false }}
-              color="warning"
-            />
-            <StatCard
-              title="Client Base"
+              title="Base de Clientes"
               value={data.stats.totalCustomers}
-              icon={<Users className="w-6 h-6" />}
-              color="default"
+              icon={<span className="material-symbols-outlined">group</span>}
+              className="border-none shadow-md rounded-[2rem] bg-white"
             />
           </div>
 
-          {/* Grid de Atividade e Produção */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Atividade Recente - Estilo Chart */}
-            <Card className="lg:col-span-2 border-none shadow-premium overflow-hidden" hover>
-              <CardHeader className="pb-0">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="text-xl font-bold">Atividade de Produção</CardTitle>
-                    <CardDescription>Status atual dos itens em linha</CardDescription>
-                  </div>
-                  <Badge variant="outline" className="rounded-lg border-primary/20 text-primary font-bold bg-primary/5 px-3 py-1">
-                    Full Report
-                  </Badge>
+          {/* Bento Grid Content */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+            {/* Main Production Chart Card */}
+            <Card className="lg:col-span-2 border-none shadow-[0_10px_40px_rgba(0,0,0,0.03)] bg-white dark:bg-slate-900 rounded-[2.5rem] overflow-hidden">
+              <CardHeader className="flex flex-row items-center justify-between p-8 pb-0">
+                <div className="space-y-1">
+                  <CardTitle className="text-xl font-semibold text-[#2D3E50] dark:text-white">Atividade Operacional</CardTitle>
+                  <CardDescription>Distribuição de carga por status de produção</CardDescription>
+                </div>
+                <div className="flex gap-1 bg-slate-50 dark:bg-slate-800 p-1.5 rounded-xl">
+                  <Button variant="ghost" size="sm" className="h-8 text-[10px] font-bold rounded-lg bg-white dark:bg-slate-700 shadow-sm">SEMANAL</Button>
+                  <Button variant="ghost" size="sm" className="h-8 text-[10px] font-bold rounded-lg text-slate-400">MENSAL</Button>
                 </div>
               </CardHeader>
               <CardContent className="p-8">
-                <ActivityChart 
-                  data={data.ordersByStatus} 
-                  totalOrders={data.stats.totalOrders} 
-                  statusLabels={statusLabels} 
+                <ActivityChart
+                  data={data.ordersByStatus}
+                  totalOrders={data.stats.totalOrders}
+                  statusLabels={statusLabels}
                 />
               </CardContent>
             </Card>
 
-            {/* Coluna de Alertas / Quick Stats */}
+            {/* Side Action/Status Cards */}
             <div className="space-y-6">
-              <Card className="border-none shadow-premium bg-slate-900 text-white" hover>
-                <CardHeader>
-                  <CardTitle className="text-lg font-bold flex items-center gap-2">
-                    <CheckCircle2 className="w-5 h-5 text-primary" />
-                    Status Geral
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
+              <Card className="border-none shadow-xl bg-[#2D3E50] text-white rounded-[2.5rem] p-8 relative overflow-hidden group">
+                <div className="absolute top-[-10%] right-[-10%] p-8 opacity-10 group-hover:scale-110 transition-transform duration-1000">
+                  <Rocket className="w-40 h-40" />
+                </div>
+                <div className="relative z-10 space-y-6">
                   <div className="space-y-2">
-                    <div className="flex justify-between text-xs font-bold uppercase tracking-wider">
-                      <span>Eficiência de Produção</span>
-                      <span>88%</span>
-                    </div>
-                    <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden">
-                      <div className="h-full bg-primary w-[88%] rounded-full shadow-[0_0_10px_rgba(124,58,237,0.5)]" />
-                    </div>
+                    <Badge className="bg-white/10 text-white border-none mb-2 font-bold text-[10px] tracking-widest">PRODUÇÃO</Badge>
+                    <h3 className="text-2xl font-bold tracking-tight">Saúde do Fluxo</h3>
                   </div>
-                  
-                  <div className="pt-4 space-y-4 border-t border-white/10">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center">
-                        <TrendingUp className="w-4 h-4 text-emerald-400" />
-                      </div>
-                      <div>
-                        <p className="text-xs text-slate-400 font-medium tracking-tight">Financial Balance</p>
-                        <p className="text-sm font-bold text-emerald-400">
-                          {formatCurrency(data.stats.monthlyRevenue)}
-                        </p>
-                      </div>
+                  <div className="flex items-center gap-3">
+                    <div className="h-2 flex-1 bg-white/10 rounded-full overflow-hidden">
+                      <div className="h-full bg-primary w-[92%] rounded-full shadow-[0_0_15px_rgba(124,58,237,0.5)]" />
                     </div>
+                    <span className="text-sm font-bold">92%</span>
                   </div>
-                </CardContent>
+                  <Button className="w-full bg-white text-[#2D3E50] hover:bg-slate-50 font-bold rounded-2xl h-12 shadow-lg transition-all">
+                    Otimizar Processos
+                  </Button>
+                </div>
               </Card>
 
-              {/* Top Itens Pequeno */}
-              <Card className="border-none shadow-premium" hover>
-                <CardHeader className="pb-4">
-                  <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground">TOP SKUS</CardTitle>
-                </CardHeader>
-                <CardContent className="pb-6">
-                  <div className="space-y-4">
-                    {data.topProducts.slice(0, 3).map((item, idx) => (
-                      <div key={idx} className="flex items-center gap-4">
-                        <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-xs font-black text-slate-400">
-                          0{idx + 1}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-bold text-foreground truncate">{item.product}</p>
-                          <p className="text-[10px] text-muted-foreground">{item.quantity} units</p>
-                        </div>
+              {/* Critical Inventory Alert */}
+              <Card className="border-none shadow-md bg-white dark:bg-slate-900 rounded-[2.5rem] p-8">
+                <div className="flex items-center justify-between mb-6">
+                  <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Suprimentos</h4>
+                  <AlertTriangle className="w-5 h-5 text-amber-500 animate-pulse" />
+                </div>
+                <div className="space-y-4">
+                  {[
+                    { item: 'Papel Couché 250g', level: '12%', status: 'crítico' },
+                    { item: 'Tinta Magenta XL', level: '08%', status: 'crítico' }
+                  ].map((inv, idx) => (
+                    <div key={idx} className="flex items-center gap-4 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800 group hover:border-primary/20 transition-all">
+                      <div className="w-2 h-2 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]" />
+                      <div className="flex-1">
+                        <p className="text-xs font-bold text-slate-700 dark:text-slate-300">{inv.item}</p>
+                        <p className="text-[10px] text-slate-400 uppercase font-medium">{inv.status}</p>
                       </div>
-                    ))}
-                  </div>
-                </CardContent>
+                      <span className="text-[11px] font-bold bg-white dark:bg-slate-900 shadow-sm border border-slate-100 dark:border-white/5 text-slate-900 dark:text-white px-2 py-1 rounded-lg">
+                        {inv.level}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </Card>
             </div>
           </div>
 
-          {/* Tabela de Pedidos Recentes - Estilo Clean */}
-          <Card className="border-none shadow-premium overflow-hidden" hover>
-            <CardHeader className="p-8 pb-4">
+          {/* Detailed Operations Table */}
+          <Card className="border-none shadow-[0_10px_40px_rgba(0,0,0,0.03)] bg-white dark:bg-slate-900 rounded-[2.5rem] overflow-hidden">
+            <CardHeader className="p-10 pb-4">
               <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="text-xl font-bold">Recent Operations</CardTitle>
-                  <CardDescription>Histórico de transações em tempo real</CardDescription>
+                <div className="space-y-1">
+                  <CardTitle className="text-xl font-semibold text-[#2D3E50] dark:text-white">Fila de Produção Recente</CardTitle>
+                  <CardDescription>Monitoramento de pedidos em processamento</CardDescription>
                 </div>
-                <Button variant="outline" className="rounded-xl border-border bg-white hover:bg-slate-50 text-xs font-bold" asChild>
+                <Button variant="ghost" className="text-xs font-bold text-primary hover:bg-primary/5 rounded-xl h-10 group" asChild>
                   <Link href="/pedidos">
-                    View Audit
+                    Visualizar Todos <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
                   </Link>
                 </Button>
               </div>
@@ -355,41 +218,41 @@ export default async function DashboardCockpitPage() {
             <CardContent className="p-0">
               <div className="overflow-x-auto">
                 <table className="w-full text-left">
-                  <thead className="bg-slate-50/50 border-y border-border/60">
-                    <tr>
-                      <th className="px-8 py-4 text-[10px] font-black text-muted-foreground uppercase tracking-widest">Order ID</th>
-                      <th className="px-8 py-4 text-[10px] font-black text-muted-foreground uppercase tracking-widest">Client</th>
-                      <th className="px-8 py-4 text-[10px] font-black text-muted-foreground uppercase tracking-widest">Status</th>
-                      <th className="px-8 py-4 text-[10px] font-black text-muted-foreground uppercase tracking-widest text-right">Amount</th>
+                  <thead>
+                    <tr className="bg-slate-50/50 dark:bg-slate-800/20 border-y border-slate-100 dark:border-slate-800">
+                      <th className="px-10 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Cod. Pedido</th>
+                      <th className="px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Cliente</th>
+                      <th className="px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Status Atual</th>
+                      <th className="px-10 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">Faturamento</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-border/40">
-                    {data.recentOrders.slice(0, 5).map((order) => (
-                      <tr key={order.id} className="group hover:bg-slate-50/50 transition-colors">
-                        <td className="px-8 py-5">
-                          <span className="text-xs font-bold text-foreground">#{order.number}</span>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                    {data.recentOrders.map((order) => (
+                      <tr key={order.id} className="group hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-all">
+                        <td className="px-10 py-6">
+                          <span className="text-xs font-bold text-[#2D3E50] dark:text-white">#{order.number}</span>
                         </td>
-                        <td className="px-8 py-5">
+                        <td className="px-8 py-6">
                           <div className="flex flex-col">
-                            <span className="text-xs font-bold text-foreground">{order.customer?.name}</span>
-                            <span className="text-[10px] text-muted-foreground">{new Date(order.createdAt).toLocaleDateString()}</span>
+                            <span className="text-xs font-semibold text-slate-700 dark:text-slate-200">{order.customer?.name}</span>
+                            <span className="text-[10px] text-slate-400 font-medium">{new Date(order.createdAt).toLocaleDateString()}</span>
                           </div>
                         </td>
-                        <td className="px-8 py-5">
-                          <Badge 
-                            variant="outline" 
-                            className={cn(
-                              "rounded-lg px-2 py-0.5 text-[10px] font-bold border-none",
-                              order.status === 'DELIVERED' ? 'bg-emerald-50 text-emerald-600' :
-                              order.status === 'IN_PRODUCTION' ? 'bg-primary/10 text-primary' :
-                              'bg-slate-100 text-slate-500'
-                            )}
-                          >
-                            {statusLabels[order.status] || order.status}
-                          </Badge>
+                        <td className="px-8 py-6">
+                          <div className="flex items-center gap-2">
+                             <div className={cn(
+                              "w-2 h-2 rounded-full",
+                              order.status === 'DELIVERED' ? 'bg-emerald-500' :
+                                order.status === 'IN_PRODUCTION' ? 'bg-primary animate-pulse shadow-[0_0_8px_rgba(124,58,237,0.4)]' :
+                                  'bg-slate-300'
+                            )} />
+                            <Badge variant="outline" className="text-[10px] font-bold border-slate-100 dark:border-slate-800 text-slate-500 uppercase py-0 px-2 h-5">
+                              {statusLabels[order.status] || order.status}
+                            </Badge>
+                          </div>
                         </td>
-                        <td className="px-8 py-5 text-right">
-                          <span className="text-xs font-black text-foreground">{formatCurrency(Number(order.total))}</span>
+                        <td className="px-10 py-6 text-right">
+                          <span className="text-xs font-bold text-[#2D3E50] dark:text-white">{formatCurrency(Number(order.total))}</span>
                         </td>
                       </tr>
                     ))}

@@ -1,13 +1,13 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useState, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { User, Session } from '@supabase/supabase-js'
 
 type AuthContextType = {
   user: User | null
   session: Session | null
-  loading: Boolean
+  loading: boolean
   signOut: () => Promise<void>
 }
 
@@ -15,23 +15,31 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   session: null,
   loading: true,
-  signOut: async () => {},
+  signOut: async () => { },
 })
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
 
   useEffect(() => {
     const setData = async () => {
-      const { data: { session }, error } = await supabase.auth.getSession()
-      if (session) {
-        setSession(session)
-        setUser(session.user)
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession()
+        if (error) {
+          console.error('Erro ao obter sessão:', error.message)
+        }
+        if (session) {
+          setSession(session)
+          setUser(session.user)
+        }
+      } catch (error) {
+        console.error('Erro inesperado ao carregar sessão:', error)
+      } finally {
+        setLoading(false)
       }
-      setLoading(false)
     }
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -45,10 +53,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return () => {
       subscription.unsubscribe()
     }
-  }, [])
+  }, [supabase.auth])
 
   const signOut = async () => {
-    await supabase.auth.signOut()
+    try {
+      await supabase.auth.signOut()
+    } catch (error) {
+      console.error('Erro ao fazer logout:', error)
+    }
   }
 
   return (
