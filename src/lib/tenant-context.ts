@@ -28,7 +28,7 @@ export function getTenantContext(): TenantContext | undefined {
  * Obtém o tenantId do contexto atual.
  * Lança erro se não houver contexto (proteção de segurança).
  */
-export function useTenantId(): string {
+export function requireTenantId(): string {
   const context = getTenantContext()
   if (!context) {
     throw new Error('[TenantContext] Tentativa de acesso ao banco fora do escopo de tenant.')

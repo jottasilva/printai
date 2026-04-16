@@ -222,7 +222,7 @@ export function ShippingDetailsModal({ shipment }: ShippingDetailsModalProps) {
                   <div className="bg-indigo-500/5 border border-indigo-500/10 p-4 rounded-xl flex gap-3 items-center">
                     <Info className="w-5 h-5 text-indigo-500" />
                     <p className="text-[11px] text-indigo-700 dark:text-indigo-300 font-medium">
-                      Alterar dados de rastreio irá atualizar automaticamente o status do pedido para "Em Trânsito" e notificar o sistema de auditoria.
+                      Alterar dados de rastreio irá atualizar automaticamente o status do pedido para &quot;Em Trânsito&quot; e notificar o sistema de auditoria.
                     </p>
                   </div>
 

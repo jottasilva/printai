@@ -60,7 +60,7 @@ export function AuditTimeline({ logs }: AuditTimelineProps) {
             </div>
 
             <p className="text-sm text-slate-600 mb-4 leading-relaxed italic">
-              "{log.note || 'Sem observações registradas.'}"
+              &quot;{log.note || 'Sem observações registradas.'}&quot;
             </p>
 
             <div className="flex items-center justify-between pt-3 border-t border-slate-50">

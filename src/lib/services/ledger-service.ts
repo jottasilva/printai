@@ -1,6 +1,5 @@
 import { prisma } from '../db';
 import { LedgerAccountType, Prisma } from '@prisma/client';
-import { useTenantId } from '../tenant-context';
 
 /**
  * Serviço de Ledger (Livro Razão) Contábil
@@ -58,7 +57,7 @@ export class LedgerService {
     referenceId?: string;
     metadata?: any;
   }) {
-    const tenantId = params.tenantId || useTenantId();
+    const tenantId = params.tenantId || requireTenantId();
     const { debitAccountCode, creditAccountCode, amount, description, referenceEntity, referenceId, metadata } = params;
 
     return await prisma.$transaction(async (tx) => {
@@ -103,7 +102,7 @@ export class LedgerService {
    * Obtém o saldo atual de uma conta pelo código
    */
   static async getBalance(code: string, tenantId?: string) {
-    const id = tenantId || useTenantId();
+    const id = tenantId || requireTenantId();
     const account = await prisma.ledgerAccount.findUnique({
       where: { tenantId_code: { tenantId: id, code } },
       select: { balance: true }

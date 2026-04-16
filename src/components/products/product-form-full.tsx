@@ -14,7 +14,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Select } from '@/components/ui/select'
 import { createProduct, updateProduct, ProductFormData } from '@/app/actions/products'
 
 const ProductSchema = z.object({
@@ -192,17 +192,13 @@ export function ProductFormFull({ initialData, categories }: ProductFormProps) {
                       <Select 
                         defaultValue={form.getValues('type')}
                         onValueChange={(v: any) => form.setValue('type', v)}
-                      >
-                        <SelectTrigger className="rounded-xl border-slate-200">
-                          <SelectValue placeholder="Selecione o tipo" />
-                        </SelectTrigger>
-                        <SelectContent className="rounded-xl">
-                          <SelectItem value="SIMPLE">Simples</SelectItem>
-                          <SelectItem value="VARIABLE">Variável</SelectItem>
-                          <SelectItem value="SERVICE">Serviço</SelectItem>
-                          <SelectItem value="BUNDLE">Kit / Combo</SelectItem>
-                        </SelectContent>
-                      </Select>
+                        options={[
+                          { value: 'SIMPLE', label: 'Simples' },
+                          { value: 'VARIABLE', label: 'Variável' },
+                          { value: 'SERVICE', label: 'Serviço' },
+                          { value: 'BUNDLE', label: 'Kit / Combo' },
+                        ]}
+                      />
                     </div>
                   </div>
                   <div className="space-y-2">
@@ -210,16 +206,9 @@ export function ProductFormFull({ initialData, categories }: ProductFormProps) {
                     <Select 
                       defaultValue={form.getValues('categoryId')}
                       onValueChange={(v: any) => form.setValue('categoryId', v)}
-                    >
-                      <SelectTrigger className="rounded-xl border-slate-200">
-                        <SelectValue placeholder="Selecione uma categoria" />
-                      </SelectTrigger>
-                      <SelectContent className="rounded-xl">
-                        {categories.map(cat => (
-                          <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                      placeholder="Selecione uma categoria"
+                      options={categories.map(cat => ({ value: cat.id, label: cat.name }))}
+                    />
                   </div>
                 </CardContent>
               </Card>
@@ -404,18 +393,15 @@ export function ProductFormFull({ initialData, categories }: ProductFormProps) {
                     <Select 
                       defaultValue={form.getValues('unit')}
                       onValueChange={(v: any) => form.setValue('unit', v)}
-                    >
-                      <SelectTrigger className="rounded-xl border-slate-200">
-                        <SelectValue placeholder="Selecione a unidade" />
-                      </SelectTrigger>
-                      <SelectContent className="rounded-xl">
-                        <SelectItem value="un">Unidade (un)</SelectItem>
-                        <SelectItem value="pct">Pacote (pct)</SelectItem>
-                        <SelectItem value="folha">Folha</SelectItem>
-                        <SelectItem value="m2">Metro Quadrado (m²)</SelectItem>
-                        <SelectItem value="kg">Quilograma (kg)</SelectItem>
-                      </SelectContent>
-                    </Select>
+                      placeholder="Selecione a unidade"
+                      options={[
+                        { value: 'un', label: 'Unidade (un)' },
+                        { value: 'pct', label: 'Pacote (pct)' },
+                        { value: 'folha', label: 'Folha' },
+                        { value: 'm2', label: 'Metro Quadrado (m²)' },
+                        { value: 'kg', label: 'Quilograma (kg)' },
+                      ]}
+                    />
                   </div>
                   <div className="p-4 bg-blue-50/50 rounded-2xl border border-blue-100 flex gap-4">
                     <span className="material-symbols-rounded text-blue-500">info_outline</span>
